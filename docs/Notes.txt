@@ -1,0 +1,1 @@
+Input: list of symbols, list of coordinates, list of energies (all lists in order)
