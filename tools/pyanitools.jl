@@ -1,9 +1,11 @@
-"""
+using PyCall
+py"""
+'''
 Originally from ANI_1_dataset repository (https://github.com/isayev/ANI1_dataset)
-    Written by Roman Zubatyuk and Justin S. Smith
+Written by Roman Zubatyuk and Justin S. Smith
 
 Minor modifications by Sung H. Jung
-"""
+'''
 import h5py
 import numpy as np
 import platform
@@ -14,16 +16,16 @@ PY_VERSION = int(platform.python_version().split('.')[0]) > 3
 
 class datapacker(object):
     def __init__(self, store_file, mode='w-', complib='gzip', complevel=6):
-        """Wrapper to store arrays within HFD5 file
-        """
+        '''Wrapper to store arrays within HFD5 file
+        '''
         # opening file
         self.store = h5py.File(store_file, mode=mode)
         self.clib = complib
         self.clev = complevel
 
     def store_data(self, store_loc, **kwargs):
-        """Put arrays to store
-        """
+        '''Put arrays to store
+        '''
         #print(store_loc)
         g = self.store.create_group(store_loc)
         for k, v, in kwargs.items():
@@ -38,8 +40,8 @@ class datapacker(object):
             g.create_dataset(k, data=v, compression=self.clib, compression_opts=self.clev)
 
     def cleanup(self):
-        """Wrapper to close HDF5 file
-        """
+        '''Wrapper to close HDF5 file
+        '''
         self.store.close()
 
 
@@ -121,4 +123,4 @@ class anidataloader(object):
     ''' Close the HDF5 file '''
     def cleanup(self):
         self.store.close()
-
+"""
