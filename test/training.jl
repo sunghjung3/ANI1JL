@@ -3,7 +3,7 @@
 #==============================================================================================#
 using PyCall
 
-data_file_name = "C:\\Users\\sungh\\code\\ANI-1_release\\ani_gdb_s02.h5"
+data_file_name = "C:\\Users\\sungh\\code\\ANI-1_release\\ani_gdb_s01.h5"
 
 #==============================================================================================#
 function import_ani_data(filename::String)
