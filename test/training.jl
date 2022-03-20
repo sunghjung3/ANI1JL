@@ -1,3 +1,6 @@
+# Test training script using part of ANI-1's existing dataset
+
+#==============================================================================================#
 using PyCall
 
 data_file_name = "C:\\Users\\sungh\\code\\ANI-1_release\\ani_gdb_s02.h5"
@@ -7,9 +10,30 @@ function import_ani_data(filename::String)
     include("../tools/pyanitools.jl")
     adl = py"anidataloader"(filename)
 
+    # data vectors to return
+    symbols = Vector{Vector{String}}()
+    coordinates = Vector{Matrix{Float64}}()
+    energies = Vector{Float64}()
+
+    # extract all data
     for data in adl
-        @info typeof(data)
+        P = data["path"]
+        X = data["coordinates"]
+        E = data["energies"]
+        S = data["species"]
+        sm = data["smiles"]
+
+        # add to return vectors
+        append!(energies, E)
+        for i = 1:length(E)  # for all the energies
+            push!(symbols, S)  # all the same species
+            push!(coordinates, X[i, :, :])
+        end
     end
+
+    adl.cleanup()
+
+    return symbols, coordinates, energies
 end
 
 #==============================================================================================#
