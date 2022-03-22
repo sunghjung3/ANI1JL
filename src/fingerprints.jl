@@ -8,7 +8,7 @@ module fingerprints
 floats_or_ints = Union{Float64, Int64}
 
 
-function f_C(R_ij::floats_or_ints, R_c::floats_or_ints)
+function f_C(R_ij::floats_or_ints, R_c::floats_or_ints) :: Float64
     """
     Piecewise cutoff function
 
@@ -23,7 +23,7 @@ end
 
 
 function G_R_singleTerm(R_ij::floats_or_ints, R_s::floats_or_ints, R_c::floats_or_ints,
-                        η::floats_or_ints)
+                        η::floats_or_ints) :: Float64
     """
     Single term of the radial element G_R of the atomic environment vector
 
@@ -36,7 +36,7 @@ end
 
 function G_A_singleTerm(θ_ijk::floats_or_ints, θ_s::floats_or_ints, ζ::floats_or_ints,
                         R_ij::floats_or_ints, R_ik::floats_or_ints, R_s::floats_or_ints,
-                        R_c::floats_or_ints, η::floats_or_ints)
+                        R_c::floats_or_ints, η::floats_or_ints) :: Float64
     """
     Single term of the angular element G_A of the atomic environment vector
 

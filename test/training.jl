@@ -5,6 +5,8 @@ using PyCall
 
 data_file_name = "C:\\Users\\sungh\\code\\ANI-1_release\\ani_gdb_s01.h5"
 
+include("../src/ANI1JL.jl")
+
 #==============================================================================================#
 function import_ani_data(filename::String)
     include("../tools/pyanitools.jl")
@@ -38,7 +40,9 @@ end
 
 #==============================================================================================#
 function main(data_file_name::String)
-    import_ani_data(data_file_name)
+    symbols, coordinates, energies = import_ani_data(data_file_name)
+    model = ANI1JL.train(symbols, coordinates, energies)
+    println(model)
 end
 
 
