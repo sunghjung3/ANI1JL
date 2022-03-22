@@ -29,7 +29,7 @@ function import_ani_data(filename::String)
         append!(energies, E)
         for i = 1:length(E)  # for all the energies
             push!(symbols, S)  # all the same species
-            push!(coordinates, X[i, :, :])
+            push!(coordinates, X[i, :, :]')  # transpose to make each (x, y, z) a column
         end
     end
 
