@@ -22,7 +22,12 @@ end
 
 
 function parse(par_file::String) :: Params
-
+    f = open(par_file, "r")
+    flines = readlines(f)
+    close(f)
+    filter!(x -> !isempty(x), flines)  # get rid of empty lines
+    filter!(x -> (x[1] != '#'), flines)  # get rid of comment lines
+    println(flines)
 end
 
 

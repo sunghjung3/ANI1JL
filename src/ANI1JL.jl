@@ -1,14 +1,16 @@
 # main file that brings everything together
-include("training/fingerprints.jl")
-include("parameters.jl")
 
 module ANI1JL
+
+
+include("training/fingerprints.jl")
+include("parameters.jl")
 
 
 function train(symbols::Vector{Vector{String}},              # required
                coordinates::Vector{Matrix{Float64}},         # required
                energies::Vector{Float64};                    # required
-               settingsFile::String= "training/default.par"  # optional (keyword)
+               parameterFile = nothing                       # optional (keyword)
                )
     """
     Trains the force field with given data.
@@ -28,7 +30,7 @@ function train(symbols::Vector{Vector{String}},              # required
     (None at the moment)
 
     Optional arguments:
-    - settingsFile:
+    - parameterFile:
         File containing settings and parameters to use for training
             * uses default settings if not provided 
 
@@ -38,7 +40,15 @@ function train(symbols::Vector{Vector{String}},              # required
         * Compute atomic environment vectors (AEV) from distance and angle matrices
         * Train and return the model
     """
-    
+    if isnothing(parameterFile)  # find default setting file
+        pathwin = split(pwd(), "\\")
+        pathnux = split(pwd(), "/")
+        path = (length(pathwin) > length(pathnux)) ? pathwin : pathnux  # depending on system
+        basepos = last(findall(x -> x == "ANI1JL", path))  # location of lowest "ANI1JL" dir
+        parameterFile = join(path, "/") * "/src/training/default.par"
+        println(parameterFile)
+    end
+    parameters.parse(parameterFile)
     return "success"
 end
 
