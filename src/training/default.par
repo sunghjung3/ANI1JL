@@ -2,15 +2,16 @@
 # comments start with a "#" at the beginning of the line
 
 # blank lines do not matter
+# case insensitive
 
 # All field below are OPTIONAL. If not included, will use default setting
 #===============================================================================================
 
 # list of all elements in the training data (N elements)
-Elements:    C   N   O   H
+Elements    C   N   O   H
 
 # parameters for the radial elements of AEV (include integer m_R to list all m_R pairs explicitly)
-Radial:     8
+Radial     8
 # eta   R_s
 4.00    0.50
 4.00    1.00
@@ -24,7 +25,7 @@ Radial:     8
 4.60
 
 # parameters for the angular elements of AEV (don't include integer m_A to have the software generate all m_A pairs for you)
-Angular:
+Angular
 # zeta
 8.00
 # theta_s (radians)
@@ -42,10 +43,10 @@ Angular:
 # Number of neurons in each hidden layer (thus not including number in 1st layer nor last layer)
 # FYI: number in 1st layer should be = m_R*N + m_A*N*(N+1)/2
 # FYI: number in last layer should be = 1
-Architecture:   64
+Architecture   64
 
 # Allow biases? With n hidden layers, there should be (n+1) "y"/"n" below
-Biases: y   y
+Biases  y   y
 
 # Activation functions
-Activation: gelu    gelu
+Activation  gelu    gelu
