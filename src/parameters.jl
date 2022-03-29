@@ -66,7 +66,7 @@ function parse_params(par_file::String) :: Params
         if keyword == "elements"
             params.elements = line[2:end]
         elseif keyword == "radial"
-            #try
+            try
                 numPairs = parse(Int64, line[2])  # number of pairs explicitly provided
                 for i = (counter + 1):(counter + numPairs)
                     line = read_single_line(flines, i)
@@ -76,7 +76,6 @@ function parse_params(par_file::String) :: Params
                 end
                 counter += numPairs
 
-            #=
             catch  # number of pairs not provided
                 values = Vector{Float64}[]
                 num_to_read = 2  # η and R_s
@@ -97,7 +96,6 @@ function parse_params(par_file::String) :: Params
                 end
 
             end
-            =#
 
             # read R_cut
             counter += 1
