@@ -20,7 +20,7 @@ Base.@kwdef mutable struct Params
     # ex: [(zeta1, theta_s1, eta1, R_s1), ...]
     angular::Vector{Tuple{Float64, Float64, Float64, Float64}} = Tuple{Float64, Float64,
                                                                        Float64, Float64}[]
-    architecture::Vector{Int64} = Int64[]  # ex: [128, 128, 64]
+    architecture::Vector{Int64} = Int64[]  # ex: [768, 128, 128, 64, 1] (include input & output)
     biases::Vector{String} = String[]  # ex: ["y", "y", "y", "n"]
     activation::Vector{String} = String[]  # ex: ["gelu", "gelu", "gelu", "gelu"]
 end
@@ -30,8 +30,10 @@ Base.show(io::IO, p::Params) =
     print(io, """
               Elements     : $(p.elements)
               R_cut        : $(p.R_cut_radial) (Radial), $(p.R_cut_angular) (Angular)
-              Radial pairs : $(p.radial)
-              Angular pairs: $(p.angular)
+              Radial pairs : $(length(p.radial))
+              $(p.radial)
+              Angular pairs: $(length(p.angular))
+              $(p.angular)
               Architecture : $(p.architecture)
               Biases       : $(p.biases)
               Activation   : $(p.activation)
@@ -167,6 +169,15 @@ function parse_params(par_file::String) :: Params
     catch
         throw(error("Inconsistent hyperparameters input"))
     end
+
+    # insert input & output layer information into params
+    N = length(params.elements)
+    m_R = length(params.radial)
+    m_A = length(params.angular)
+    len_radial_subAEV = m_R * N
+    len_angular_subAEV = m_A * N * (N + 1) / 2
+    insert!(params.architecture, 1, len_radial_subAEV + len_angular_subAEV)  # input layer
+    push!(params.architecture, 1)  # output layer
 
     return params
 end

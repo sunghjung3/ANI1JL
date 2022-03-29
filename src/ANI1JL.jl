@@ -48,7 +48,8 @@ function train(symbols::Vector{Vector{String}},              # required
         parameterFile = join(path, "/") * "/src/training/default.par"
         println(parameterFile)
     end
-    parameters.parse_params(parameterFile)
+    params = parameters.parse_params(parameterFile)
+    println(params)
     return "success"
 end
 
