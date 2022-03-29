@@ -66,10 +66,8 @@ function parse_params(par_file::String) :: Params
         if keyword == "elements"
             params.elements = line[2:end]
         elseif keyword == "radial"
-            if isempty(line[2])  # explicit pairs not listed
-
-            else  # explicit pairs listed
-                numPairs = parse(Int64, line[2])
+            #try
+                numPairs = parse(Int64, line[2])  # number of pairs explicitly provided
                 for i = (counter + 1):(counter + numPairs)
                     line = read_single_line(flines, i)
 
@@ -78,61 +76,77 @@ function parse_params(par_file::String) :: Params
                 end
                 counter += numPairs
 
-                # read R_cut
-                line = read_single_line(flines, counter)
-                params.R_cut_radial = parse(Float64, line[1])
-                counter += 1
+            #=
+            catch  # number of pairs not provided
+                values = Vector{Float64}[]
+                num_to_read = 2  # η and R_s
+
+                for i = (counter + 1):(counter + num_to_read)
+                    line = read_single_line(flines, i)
+                    
+                    # convert each element in line to Float, and push to values vector
+                    push!(values, map(x -> parse(Float64, x), line))
+                end
+                counter += num_to_read
+
+                # make tuples by distributing each list
+                for η in values[1]
+                    for Rs in values[2]
+                        push!(params.angular, (η, Rs))
+                    end
+                end
+
             end
+            =#
+
+            # read R_cut
+            counter += 1
+            line = read_single_line(flines, counter)
+            params.R_cut_radial = parse(Float64, line[1])
+
         elseif keyword == "angular"
             try
                 numPairs = parse(Int64, line[2])  # number of pairs explicitly provided
                 for i = (counter + 1):(counter + numPairs)
-                    line = read_single_line(fline, i)
+                    line = read_single_line(flines, i)
 
                     # convert the pair into a tuple
                     push!(params.angular, Tuple(map(x -> parse(Float64, x), line)) )
                 end
                 counter += numPairs
 
-                # read R_cut
-                line = read_single_line(flines, counter)
-                params.R_cut_angular = parse(Float64, line[1])
-                counter += 1
+            catch  # number of pairs not provided
+                values = Vector{Float64}[]
+                num_to_read = 4  # ζ, θ_s, η, and R_s
 
-            catch e  # number of pairs not provided
-                counter += 1
-                line = read_single_line(flines, counter)
-                ζ_list = map(x -> parse(Float64, x), line)
-                counter += 1
-                line = read_single_line(flines, counter)
-                θs_list = map(x -> parse(Float64, x), line)
-                counter += 1
-                line = read_single_line(flines, counter)
-                η_list = map(x -> parse(Float64, x), line)
-                counter += 1
-                line = read_single_line(flines, counter)
-                Rs_list = map(x -> parse(Float64, x), line)
+                for i = (counter + 1):(counter + num_to_read)
+                    line = read_single_line(flines, i)
+                    
+                    # convert each element in line to Float, and push to values vector
+                    push!(values, map(x -> parse(Float64, x), line))
+                end
+                counter += num_to_read
 
-                for ζ in ζ_list
-                    for θs in θs_list
-                        for η in η_list
-                            for Rs in Rs_list
+                # make tuples by distributing each list
+                for ζ in values[1]
+                    for θs in values[2]
+                        for η in values[3]
+                            for Rs in values[4]
                                 push!(params.angular, (ζ, θs, η, Rs))
                             end
                         end
                     end
                 end
-                counter += 1
-
-                # read R_cut
-                line = read_single_line(flines, counter)
-                params.R_cut_angular = parse(Float64, line[1])
-                counter += 1
 
             end
 
+            # read R_cut
+            counter += 1
+            line = read_single_line(flines, counter)
+            params.R_cut_angular = parse(Float64, line[1])
+
         elseif keyword == "architecture"
-            params.architecture = line[2:end]
+            params.architecture = map(x -> parse(Int64, x), line[2:end])
         elseif keyword == "biases"
             params.biases = line[2:end]
         elseif keyword == "activation"
