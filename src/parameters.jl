@@ -161,8 +161,13 @@ function parse_params(par_file::String) :: Params
     end
 
     # sanity checks: length of bias and activation vectors are one more than architecture length
+    try
+        @assert length(params.architecture) == length(params.biases) - 1
+        @assert length(params.biases) == length(params.activation)
+    catch
+        throw(error("Inconsistent hyperparameters input"))
+    end
 
-    println(params)
     return params
 end
 
