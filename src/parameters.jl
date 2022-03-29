@@ -38,11 +38,11 @@ Base.show(io::IO, p::Params) =
               """)
               # add input and final layers; something is still wrong in R_cut...
 
-function multiline_parse(params::Params, flines::Vector{String})  :: Int64
+function read_single_line(lines::Vector{String}, i::Int64)
     """
-    Helper for parse_params() to parse multi-line inputs
+    Return a vector of split words of a single line
     """
-
+    return split(lines[i])
 end
 
 function parse_params(par_file::String) :: Params
@@ -60,7 +60,7 @@ function parse_params(par_file::String) :: Params
     L = length(flines)
     counter = 1
     while counter <= L
-        line = split(flines[counter])  # single line
+        line = read_single_line(flines, counter)
         keyword = lowercase(line[1])
 
         if keyword == "elements"
@@ -71,7 +71,7 @@ function parse_params(par_file::String) :: Params
             else  # explicit pairs listed
                 numPairs = parse(Int64, line[2])
                 for i = (counter + 1):(counter + numPairs)
-                    line = split(flines[i])
+                    line = read_single_line(flines, i)
 
                     # convert the pair into a tuple
                     push!(params.radial, Tuple(map(x -> parse(Float64, x), line)) )
@@ -79,7 +79,7 @@ function parse_params(par_file::String) :: Params
                 counter += numPairs
 
                 # read R_cut
-                line = split(flines[counter])
+                line = read_single_line(flines, counter)
                 params.R_cut_radial = parse(Float64, line[1])
                 counter += 1
             end
@@ -87,7 +87,7 @@ function parse_params(par_file::String) :: Params
             try
                 numPairs = parse(Int64, line[2])  # number of pairs explicitly provided
                 for i = (counter + 1):(counter + numPairs)
-                    line = split(flines[i])
+                    line = read_single_line(fline, i)
 
                     # convert the pair into a tuple
                     push!(params.angular, Tuple(map(x -> parse(Float64, x), line)) )
@@ -95,21 +95,22 @@ function parse_params(par_file::String) :: Params
                 counter += numPairs
 
                 # read R_cut
-                line = split(flines[counter])
+                line = read_single_line(flines, counter)
                 params.R_cut_angular = parse(Float64, line[1])
                 counter += 1
+
             catch e  # number of pairs not provided
                 counter += 1
-                line = split(flines[counter])
+                line = read_single_line(flines, counter)
                 ζ_list = map(x -> parse(Float64, x), line)
                 counter += 1
-                line = split(flines[counter])
+                line = read_single_line(flines, counter)
                 θs_list = map(x -> parse(Float64, x), line)
                 counter += 1
-                line = split(flines[counter])
+                line = read_single_line(flines, counter)
                 η_list = map(x -> parse(Float64, x), line)
                 counter += 1
-                line = split(flines[counter])
+                line = read_single_line(flines, counter)
                 Rs_list = map(x -> parse(Float64, x), line)
 
                 for ζ in ζ_list
@@ -124,7 +125,7 @@ function parse_params(par_file::String) :: Params
                 counter += 1
 
                 # read R_cut
-                line = split(flines[counter])
+                line = read_single_line(flines, counter)
                 params.R_cut_angular = parse(Float64, line[1])
                 counter += 1
 
