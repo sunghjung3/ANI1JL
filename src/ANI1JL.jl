@@ -4,6 +4,7 @@ module ANI1JL
 
 
 include("training/fingerprints.jl")
+include("training/geometry.jl")
 include("parameters.jl")
 
 
@@ -45,15 +46,17 @@ function train(symbols::Vector{Vector{String}},              # required
         pathnux = split(pwd(), "/")
         path = (length(pathwin) > length(pathnux)) ? pathwin : pathnux  # depending on system
         basepos = last(findall(x -> x == "ANI1JL", path))  # location of lowest "ANI1JL" dir
-        @show path
-        @show basepos
-        path = path[1:basepos] # only the path up to the lowest ANI1JL directory
-        @show path
+        path = path[1:basepos]  # only the path up to the lowest ANI1JL directory
         parameterFile = join(path, "/") * "/src/training/default.par"
         println(parameterFile)
     end
     params = parameters.parse_params(parameterFile)
     println(params)
+    println(length(symbols[1]))
+    println(size(coordinates[1]))
+    println(length(energies))
+
+
     return "success"
 end
 

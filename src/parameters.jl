@@ -16,10 +16,9 @@ Base.@kwdef mutable struct Params
     # ex: 4.0 (Angstroms)
     R_cut_angular::Float64 = 0.0
     # ex: [(eta1, R_s1), (eta2, R_s2), ...]
-    radial::Vector{Tuple{Float64, Float64}} = Tuple{Float64, Float64}[]
+    radial::Vector{NTuple{2, Float64}} = NTuple{2, Float64}[]
     # ex: [(zeta1, theta_s1, eta1, R_s1), ...]
-    angular::Vector{Tuple{Float64, Float64, Float64, Float64}} = Tuple{Float64, Float64,
-                                                                       Float64, Float64}[]
+    angular::Vector{NTuple{4, Float64}} = NTuple{4, Float64}[]
     architecture::Vector{Int64} = Int64[]  # ex: [768, 128, 128, 64, 1] (include input & output)
     biases::Vector{String} = String[]  # ex: ["y", "y", "y", "n"]
     activation::Vector{String} = String[]  # ex: ["gelu", "gelu", "gelu", "gelu"]
@@ -40,6 +39,10 @@ Base.show(io::IO, p::Params) =
               """)
               # add input and final layers; something is still wrong in R_cut...
 
+
+#==============================================================================================#
+# Helper functions for parse_params()
+
 function read_single_line(lines::Vector{String}, i::Int64)
     """
     Return a vector of split words of a single line
@@ -47,15 +50,92 @@ function read_single_line(lines::Vector{String}, i::Int64)
     return split(lines[i])
 end
 
+function read_par_file(filename::String) :: Vector{String}
+
+    f = open(filename, "r")
+    lines = readlines(f)
+    close(f)
+
+    filter!(x -> !isempty(x), lines)  # get rid of empty lines
+    filter!(x -> (x[1] != '#'), lines)  # get rid of comment lines
+
+    return lines
+end
+
+function set_from_groups!(params::Params, numGroups::Int64, lines::Vector{String},
+                          prevIndex::Int64, fieldname::String)
+    """
+    Read from explicitly provided parameter groups and set params field
+    """
+    field = Symbol(fieldname)
+    for i = (prevIndex + 1):(prevIndex + numGroups)
+        line = read_single_line(lines, i)
+        tline = Tuple(map(x -> parse(Float64, x), line))  # convert into float Tuple
+        push!( getproperty(params, field) , tline )  # append to the appropriate vector field
+    end
+end
+
+function set_from_lists!(params::Params, numParameters::Int64, lines::Vector{String},
+                         prevIndex::Int64, fieldname::String)
+    """
+    Read from lists of individual parameters and set params field by distributing over all
+    """
+    field = Symbol(fieldname)
+    values = Vector{Float64}[]
+    for i = (prevIndex + 1):(prevIndex + numParameters)
+        line = read_single_line(lines, i)
+        tline = map(x -> parse(Float64, x), line)
+        push!(values, tline)
+    end
+    temp = vec( collect(Base.product(values...)) )  # a 1D vector of all groups
+    setproperty!(params, field, temp)
+end
+
+function set_subAEV!(params::Params, keyword::String, num_elements::Int64,
+                     lines::Vector{String}, counter::Int64) :: Int64
+    try  # number of pairs explicitly provided
+        numGroups = parse(Int64, read_single_line(lines, counter)[2])
+        set_from_groups!(params, numGroups, lines, counter, keyword)
+        counter += numGroups
+    catch  # number of pairs not provided
+        #num_to_read = 4  # ζ, θ_s, η, and R_s
+        set_from_lists!(params, num_elements, lines, counter, keyword)
+        counter += num_elements
+    end
+
+    # read R_cut
+    counter += 1
+    line = read_single_line(lines, counter)
+    R_cut_field = Symbol("R_cut_" * keyword)
+    R_cut = parse(Float64, line[1])
+    setproperty!(params, R_cut_field, R_cut)
+
+    # return updated counter
+    return counter
+end
+
+function set_elements!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
+    params.elements = d
+end
+
+function set_architecture!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
+    params.architecture = map(x -> parse(Int64, x), d)
+end
+
+function set_biases!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
+    params.biases = d
+end
+
+function set_activation!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
+    params.activation = d
+end
+
+#==============================================================================================#
 function parse_params(par_file::String) :: Params
     """
     Parse .par file
     """
-    f = open(par_file, "r")
-    flines = readlines(f)
-    close(f)
-    filter!(x -> !isempty(x), flines)  # get rid of empty lines
-    filter!(x -> (x[1] != '#'), flines)  # get rid of comment lines
+    flines = read_par_file(par_file)
 
     # read parameters
     params = Params()
@@ -66,91 +146,19 @@ function parse_params(par_file::String) :: Params
         keyword = lowercase(line[1])
 
         if keyword == "elements"
-            params.elements = line[2:end]
+            set_elements!(params, line[2:end])
         elseif keyword == "radial"
-            try
-                numPairs = parse(Int64, line[2])  # number of pairs explicitly provided
-                for i = (counter + 1):(counter + numPairs)
-                    line = read_single_line(flines, i)
-
-                    # convert the pair into a tuple
-                    push!(params.radial, Tuple(map(x -> parse(Float64, x), line)) )
-                end
-                counter += numPairs
-
-            catch  # number of pairs not provided
-                values = Vector{Float64}[]
-                num_to_read = 2  # η and R_s
-
-                for i = (counter + 1):(counter + num_to_read)
-                    line = read_single_line(flines, i)
-                    
-                    # convert each element in line to Float, and push to values vector
-                    push!(values, map(x -> parse(Float64, x), line))
-                end
-                counter += num_to_read
-
-                # make tuples by distributing each list
-                for η in values[1]
-                    for Rs in values[2]
-                        push!(params.angular, (η, Rs))
-                    end
-                end
-
-            end
-
-            # read R_cut
-            counter += 1
-            line = read_single_line(flines, counter)
-            params.R_cut_radial = parse(Float64, line[1])
-
+            # 2 is because of: η and R_s
+            counter = set_subAEV!(params, keyword, 2, flines, counter)
         elseif keyword == "angular"
-            try
-                numPairs = parse(Int64, line[2])  # number of pairs explicitly provided
-                for i = (counter + 1):(counter + numPairs)
-                    line = read_single_line(flines, i)
-
-                    # convert the pair into a tuple
-                    push!(params.angular, Tuple(map(x -> parse(Float64, x), line)) )
-                end
-                counter += numPairs
-
-            catch  # number of pairs not provided
-                values = Vector{Float64}[]
-                num_to_read = 4  # ζ, θ_s, η, and R_s
-
-                for i = (counter + 1):(counter + num_to_read)
-                    line = read_single_line(flines, i)
-                    
-                    # convert each element in line to Float, and push to values vector
-                    push!(values, map(x -> parse(Float64, x), line))
-                end
-                counter += num_to_read
-
-                # make tuples by distributing each list
-                for ζ in values[1]
-                    for θs in values[2]
-                        for η in values[3]
-                            for Rs in values[4]
-                                push!(params.angular, (ζ, θs, η, Rs))
-                            end
-                        end
-                    end
-                end
-
-            end
-
-            # read R_cut
-            counter += 1
-            line = read_single_line(flines, counter)
-            params.R_cut_angular = parse(Float64, line[1])
-
+            # 4 is because of: ζ, θ_s, η, and R_s
+            counter = set_subAEV!(params, keyword, 4, flines, counter)
         elseif keyword == "architecture"
-            params.architecture = map(x -> parse(Int64, x), line[2:end])
+            set_architecture!(params, line[2:end])
         elseif keyword == "biases"
-            params.biases = line[2:end]
+            set_biases!(params, line[2:end])
         elseif keyword == "activation"
-            params.activation = line[2:end]
+            set_activation!(params, line[2:end])
         else
             if isempty(keyword)
                 throw(error("Empty keyword in parameter file."))
