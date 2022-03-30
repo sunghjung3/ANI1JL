@@ -1,14 +1,15 @@
 """
+    parameters
+
 Methods to parse and store model parameters
 """
-
 module parameters
 
-
+"""
+    Params
+Struct to hold all parameters passsed in by the user through the .par file
+"""
 Base.@kwdef mutable struct Params
-    """
-    Struct to hold all parameters passsed in by the user through the .par file
-    """
     # ex: ["C", "N", "O", "H"]
     elements::Vector{String} = String[]
     # ex: 4.6 (Angstroms)
@@ -43,15 +44,22 @@ Base.show(io::IO, p::Params) =
 #==============================================================================================#
 # Helper functions for parse_params()
 
-function read_single_line(lines::Vector{String}, i::Int64)
-    """
-    Return a vector of split words of a single line
-    """
+"""
+    read_single_line(lines::Vector{String}, i::Int64)
+
+Return a vector of split words of a single line
+"""
+function read_single_line(lines::Vector{String}, i::Int64)  :: Vector{SubString{String}}
     return split(lines[i])
 end
 
-function read_par_file(filename::String) :: Vector{String}
 
+"""
+    read_par_file(filename::String) :: Vector{String}
+
+Read and filter given parameter file and returns vector of each line
+"""
+function read_par_file(filename::String) :: Vector{String}
     f = open(filename, "r")
     lines = readlines(f)
     close(f)
@@ -62,11 +70,15 @@ function read_par_file(filename::String) :: Vector{String}
     return lines
 end
 
+
+"""
+    set_from_groups!(params::Params, numGroups::Int64, lines::Vector{String},
+                          prevIndex::Int64, fieldname::String)
+
+Read from explicitly provided parameter groups and set params field
+"""
 function set_from_groups!(params::Params, numGroups::Int64, lines::Vector{String},
                           prevIndex::Int64, fieldname::String)
-    """
-    Read from explicitly provided parameter groups and set params field
-    """
     field = Symbol(fieldname)
     for i = (prevIndex + 1):(prevIndex + numGroups)
         line = read_single_line(lines, i)
@@ -75,11 +87,15 @@ function set_from_groups!(params::Params, numGroups::Int64, lines::Vector{String
     end
 end
 
+
+"""
+    set_from_lists!(params::Params, numParameters::Int64, lines::Vector{String},
+                         prevIndex::Int64, fieldname::String)
+
+Read from lists of individual parameters and set params field by distributing over all
+"""
 function set_from_lists!(params::Params, numParameters::Int64, lines::Vector{String},
                          prevIndex::Int64, fieldname::String)
-    """
-    Read from lists of individual parameters and set params field by distributing over all
-    """
     field = Symbol(fieldname)
     values = Vector{Float64}[]
     for i = (prevIndex + 1):(prevIndex + numParameters)
@@ -91,6 +107,14 @@ function set_from_lists!(params::Params, numParameters::Int64, lines::Vector{Str
     setproperty!(params, field, temp)
 end
 
+
+"""
+    set_subAEV!(params::Params, keyword::String, num_elements::Int64,
+                     lines::Vector{String}, counter::Int64) :: Int64
+
+Sets radial or angular field of Params object (as well as their R_cut fields).
+Returns updated counter
+"""
 function set_subAEV!(params::Params, keyword::String, num_elements::Int64,
                      lines::Vector{String}, counter::Int64) :: Int64
     try  # number of pairs explicitly provided
@@ -131,10 +155,13 @@ function set_activation!(params::Params, d::Union{Vector{SubString{String}}, Vec
 end
 
 #==============================================================================================#
+
+"""
+    parse_params(par_file::String) :: Params
+
+Parse given .par file, and returns Params object
+"""
 function parse_params(par_file::String) :: Params
-    """
-    Parse .par file
-    """
     flines = read_par_file(par_file)
 
     # read parameters
