@@ -13,14 +13,14 @@ Base.@kwdef mutable struct Params
     # ex: ["C", "N", "O", "H"]
     elements::Vector{String} = String[]
     # ex: 4.6 (Angstroms)
-    R_cut_radial::Float64 = 0.0
+    R_cut_radial::Float32 = 0.0
     # ex: 4.0 (Angstroms)
-    R_cut_angular::Float64 = 0.0
+    R_cut_angular::Float32 = 0.0
     # ex: [(eta1, R_s1), (eta2, R_s2), ...]
-    radial::Vector{NTuple{2, Float64}} = NTuple{2, Float64}[]
+    radial::Vector{NTuple{2, Float32}} = NTuple{2, Float32}[]
     # ex: [(zeta1, theta_s1, eta1, R_s1), ...]
-    angular::Vector{NTuple{4, Float64}} = NTuple{4, Float64}[]
-    architecture::Vector{Int64} = Int64[]  # ex: [768, 128, 128, 64, 1] (include input & output)
+    angular::Vector{NTuple{4, Float32}} = NTuple{4, Float32}[]
+    architecture::Vector{Int32} = Int32[]  # ex: [768, 128, 128, 64, 1] (include input & output)
     biases::Vector{String} = String[]  # ex: ["y", "y", "y", "n"]
     activation::Vector{String} = String[]  # ex: ["gelu", "gelu", "gelu", "gelu"]
 end
@@ -45,11 +45,11 @@ Base.show(io::IO, p::Params) =
 # Helper functions for parse_params()
 
 """
-    read_single_line(lines::Vector{String}, i::Int64)
+    read_single_line(lines::Vector{String}, i::Int32)
 
 Return a vector of split words of a single line
 """
-function read_single_line(lines::Vector{String}, i::Int64)  :: Vector{SubString{String}}
+function read_single_line(lines::Vector{String}, i::Int32)  :: Vector{SubString{String}}
     return split(lines[i])
 end
 
@@ -72,35 +72,35 @@ end
 
 
 """
-    set_from_groups!(params::Params, numGroups::Int64, lines::Vector{String},
-                          prevIndex::Int64, fieldname::String)
+    set_from_groups!(params::Params, numGroups::Int32, lines::Vector{String},
+                          prevIndex::Int32, fieldname::String)
 
 Read from explicitly provided parameter groups and set params field
 """
-function set_from_groups!(params::Params, numGroups::Int64, lines::Vector{String},
-                          prevIndex::Int64, fieldname::String)
+function set_from_groups!(params::Params, numGroups::Int32, lines::Vector{String},
+                          prevIndex::Int32, fieldname::String)
     field = Symbol(fieldname)
     for i = (prevIndex + 1):(prevIndex + numGroups)
         line = read_single_line(lines, i)
-        tline = Tuple(map(x -> parse(Float64, x), line))  # convert into float Tuple
+        tline = Tuple(map(x -> parse(Float32, x), line))  # convert into float Tuple
         push!( getproperty(params, field) , tline )  # append to the appropriate vector field
     end
 end
 
 
 """
-    set_from_lists!(params::Params, numParameters::Int64, lines::Vector{String},
-                         prevIndex::Int64, fieldname::String)
+    set_from_lists!(params::Params, numParameters::Int32, lines::Vector{String},
+                         prevIndex::Int32, fieldname::String)
 
 Read from lists of individual parameters and set params field by distributing over all
 """
-function set_from_lists!(params::Params, numParameters::Int64, lines::Vector{String},
-                         prevIndex::Int64, fieldname::String)
+function set_from_lists!(params::Params, numParameters::Int32, lines::Vector{String},
+                         prevIndex::Int32, fieldname::String)
     field = Symbol(fieldname)
-    values = Vector{Float64}[]
+    values = Vector{Float32}[]
     for i = (prevIndex + 1):(prevIndex + numParameters)
         line = read_single_line(lines, i)
-        tline = map(x -> parse(Float64, x), line)
+        tline = map(x -> parse(Float32, x), line)
         push!(values, tline)
     end
     temp = vec( collect(Base.product(values...)) )  # a 1D vector of all groups
@@ -109,16 +109,16 @@ end
 
 
 """
-    set_subAEV!(params::Params, keyword::String, num_elements::Int64,
-                     lines::Vector{String}, counter::Int64) :: Int64
+    set_subAEV!(params::Params, keyword::String, num_elements::Int32,
+                     lines::Vector{String}, counter::Int32) :: Int32
 
 Sets radial or angular field of Params object (as well as their R_cut fields).
 Returns updated counter
 """
-function set_subAEV!(params::Params, keyword::String, num_elements::Int64,
-                     lines::Vector{String}, counter::Int64) :: Int64
+function set_subAEV!(params::Params, keyword::String, num_elements::Int32,
+                     lines::Vector{String}, counter::Int32) :: Int32
     try  # number of pairs explicitly provided
-        numGroups = parse(Int64, read_single_line(lines, counter)[2])
+        numGroups = parse(Int32, read_single_line(lines, counter)[2])
         set_from_groups!(params, numGroups, lines, counter, keyword)
         counter += numGroups
     catch  # number of pairs not provided
@@ -131,7 +131,7 @@ function set_subAEV!(params::Params, keyword::String, num_elements::Int64,
     counter += 1
     line = read_single_line(lines, counter)
     R_cut_field = Symbol("R_cut_" * keyword)
-    R_cut = parse(Float64, line[1])
+    R_cut = parse(Float32, line[1])
     setproperty!(params, R_cut_field, R_cut)
 
     # return updated counter
@@ -143,7 +143,7 @@ function set_elements!(params::Params, d::Union{Vector{SubString{String}}, Vecto
 end
 
 function set_architecture!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
-    params.architecture = map(x -> parse(Int64, x), d)
+    params.architecture = map(x -> parse(Int32, x), d)
 end
 
 function set_biases!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})

@@ -38,13 +38,21 @@ Optional arguments:
 
 Workflow:
     * Take symbols, coordinates, and energies as input
+    * should change all datatypes to 32 bit
     * Calculate distance and angle matrices from coordinates and symbols
     * Compute atomic environment vectors (AEV) from distance and angle matrices
+        * to vectorize training, create unnecessary AEVs too
+    * Pre-process data (mean = 0, std = 1)
+    * initalizing weights: "He initialization for RELU"
+        * https://stats.stackexchange.com/questions/229885/whats-the-recommended-weight-initialization-strategy-when-using-the-elu-activat
+        * but the ANI paper initialized from random normal distribution between the ranges (-1/d, 1/d), where d is the # of inputs into the node
+    * pre-process results in each layer? (batch normalization)
     * Train and return the model
+        * max norm regularization
 """
 function train(symbols::Vector{Vector{String}},              # required
-               coordinates::Vector{Matrix{Float64}},         # required
-               energies::Vector{Float64};                    # required
+               coordinates::Vector{Matrix{Float32}},         # required
+               energies::Vector{Float32};                    # required
                parameterFile = nothing                       # optional (keyword)
                )
     if isnothing(parameterFile)  # find default setting file

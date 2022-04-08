@@ -14,7 +14,7 @@ function import_ani_data(filename::String)
 
     # data vectors to return
     symbols = Vector{Vector{String}}()
-    coordinates = Vector{Matrix{Float64}}()
+    coordinates = Vector{Matrix{Float32}}()
     energies = Vector{Float64}()
 
     # extract all data
