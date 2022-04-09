@@ -45,17 +45,18 @@ Base.show(io::IO, p::Params) =
 # Helper functions for parse_params()
 
 """
-    read_single_line(lines::Vector{String}, i::Int32)
+    read_single_line(lines, i)
 
 Return a vector of split words of a single line
 """
-function read_single_line(lines::Vector{String}, i::Int32)  :: Vector{SubString{String}}
+function read_single_line(lines::Vector{String},
+                          i::Union{Int32, Int64}) :: Vector{SubString{String}}
     return split(lines[i])
 end
 
 
 """
-    read_par_file(filename::String) :: Vector{String}
+    read_par_file(filename)
 
 Read and filter given parameter file and returns vector of each line
 """
@@ -72,13 +73,12 @@ end
 
 
 """
-    set_from_groups!(params::Params, numGroups::Int32, lines::Vector{String},
-                          prevIndex::Int32, fieldname::String)
+    set_from_groups!(params, numGroups, lines, prevIndex, fieldname)
 
 Read from explicitly provided parameter groups and set params field
 """
-function set_from_groups!(params::Params, numGroups::Int32, lines::Vector{String},
-                          prevIndex::Int32, fieldname::String)
+function set_from_groups!(params::Params, numGroups::Union{Int32, Int64}, lines::Vector{String},
+                          prevIndex::Union{Int32, Int64}, fieldname::String)
     field = Symbol(fieldname)
     for i = (prevIndex + 1):(prevIndex + numGroups)
         line = read_single_line(lines, i)
@@ -89,13 +89,12 @@ end
 
 
 """
-    set_from_lists!(params::Params, numParameters::Int32, lines::Vector{String},
-                         prevIndex::Int32, fieldname::String)
+    set_from_lists!(params, numParameters, lines, prevIndex, fieldname)
 
 Read from lists of individual parameters and set params field by distributing over all
 """
-function set_from_lists!(params::Params, numParameters::Int32, lines::Vector{String},
-                         prevIndex::Int32, fieldname::String)
+function set_from_lists!(params::Params, numParameters::Union{Int32, Int64}, lines::Vector{String},
+                         prevIndex::Union{Int32, Int64}, fieldname::String)
     field = Symbol(fieldname)
     values = Vector{Float32}[]
     for i = (prevIndex + 1):(prevIndex + numParameters)
@@ -109,19 +108,18 @@ end
 
 
 """
-    set_subAEV!(params::Params, keyword::String, num_elements::Int32,
-                     lines::Vector{String}, counter::Int32) :: Int32
+    set_subAEV!(params, keyword, num_elements, lines, counter::Int) :: Int32
 
 Sets radial or angular field of Params object (as well as their R_cut fields).
 Returns updated counter
 """
-function set_subAEV!(params::Params, keyword::String, num_elements::Int32,
-                     lines::Vector{String}, counter::Int32) :: Int32
+function set_subAEV!(params::Params, keyword::String, num_elements::Union{Int32, Int64},
+                     lines::Vector{String}, counter::Union{Int32, Int64}) :: Union{Int32, Int64}
     try  # number of pairs explicitly provided
         numGroups = parse(Int32, read_single_line(lines, counter)[2])
         set_from_groups!(params, numGroups, lines, counter, keyword)
         counter += numGroups
-    catch  # number of pairs not provided
+    catch BoundsError # number of pairs not provided
         #num_to_read = 4  # ζ, θ_s, η, and R_s
         set_from_lists!(params, num_elements, lines, counter, keyword)
         counter += num_elements

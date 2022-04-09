@@ -21,7 +21,7 @@ end
     coordinates_to_angles(coordinates::Matrix{Float32}) :: Array{Float32, 3}
 
 Converts a matrix of coordinates (3 x N) to an angle array (N x N x N).
-Each slice o
+"""
 function coordinates_to_angles(coordinates::Matrix{Float32}) :: Array{Float32, 3}
 
 end

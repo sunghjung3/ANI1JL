@@ -4,16 +4,11 @@ module ANI1JL
 
 
 include("training/fingerprints.jl")
-include("training/geometry.jl")
 include("parameters.jl")
 
 
 """
-    train(symbols::Vector{Vector{String}},
-               coordinates::Vector{Matrix{Float32}},
-               energies::Vector{Float32};
-               parameterFile = nothing
-               )
+    train(symbols, coordinates, energies; parameterFile = nothing)
 
 Trains the force field with given data.
 
@@ -56,6 +51,7 @@ function train(symbols::Vector{Vector{String}},              # required
                energies::Vector{Float32};                    # required
                parameterFile = nothing                       # optional (keyword)
                )
+    # get settings from user
     if isnothing(parameterFile)  # find default setting file
         pathwin = split(pwd(), "\\")
         pathnux = split(pwd(), "/")
@@ -71,16 +67,9 @@ function train(symbols::Vector{Vector{String}},              # required
     println(size(coordinates[1]))
     println(length(energies))
 
-    # convert coordinate into distances and angles
-    N = length(energies)  # number of data points
-    distanceV = Vector{Matrix{Float32}}(undef, N)  # vector of distance matrices
-    angleV =  Vector{Array{Float32, 3}}(undef, N)  # vector of angle arrays (3D)
-    for i = 1:N  # convert each coordinate to distances and angles for all data points
-        distanceV[i] = geometry.coordinates_to_distances(coordinates[i])
-        angleV[i] = geometry.coordinates_to_angles(coordinates[i])
-    end
-    coordinates = nothing  # free memory
-
+    # make AEVs for each data point
+    #fingerprints.make_AEVs(symbols[1], coordinates[1], params)
+ 
     return "success"
 end
 

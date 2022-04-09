@@ -8,6 +8,8 @@ module fingerprints
 
 floats_or_ints = Union{Float32, Int32}
 
+#==============================================================================================#
+#======================================= Low Level ============================================#
 
 """
     BPParameters
@@ -24,7 +26,7 @@ end
 
 
 """
-    f_C(R_ij::floats_or_ints, R_c::floats_or_ints) :: Float32
+    f_C(R_ij, R_c)
 
 Piecewise cutoff function defined by:
                  _
@@ -39,7 +41,7 @@ end
 
 
 """
-    G_R_singleTerm(R_ij::floats_or_ints, p::BPParameters) :: Float32
+    G_R_singleTerm(R_ij: p)
 
 Single term of the radial element G_R of the atomic environment vector:
     G_R_i = exp(-η (R_ij - R_s)^2 ) * f_C(R_ij)
@@ -51,8 +53,7 @@ end
 
 
 """
-    G_A_singleTerm(θ_ijk::floats_or_ints, R_ij::floats_or_ints, R_ik::floats_or_ints,
-                        p::BPParameters) :: Float32
+    G_A_singleTerm(θ_ijk, R_ij, R_ik, p)
 
 Single term of the angular element G_A of the atomic environment vector:
     G_A_i = (1 + cos(θ_ijk- θ_s))^ζ * exp(-η([R_ij + R_ik]/2 - R_s)^2) * f_C(R_ij) f_C(R_ik)
@@ -64,6 +65,26 @@ function G_A_singleTerm(θ_ijk::floats_or_ints, R_ij::floats_or_ints, R_ik::floa
     f = f_C(R_ij, p.R_c) * f_C(R_ik, p.R_c)
     return (1 + cos(θ_ijk - p.θ_s))^p.ζ * exp(-p.η * diff * diff) * f
 end
+
+#==============================================================================================#
+#======================================= Mid Level ============================================#
+
+
+#==============================================================================================#
+#======================================= High Level ===========================================#
+
+"""
+    make_AEVs(symbols, coordinates, params)
+
+Constructs AEV for each of the N atom in the structure, given a 3 x N matrix of coordinates
+"""
+#=
+function make_AEVs(symbols::Vector{String}, coordinates::Matrix{Float32},
+                   params::parameters.Params) :: Vector{Vector{Float32}}
+    distance_matrix = sqrt.( transpose(coordinates) * coordinates )
+    @show params.activation
+end
+=#
 
 
 end
