@@ -10,8 +10,8 @@ include("parameters.jl")
 
 """
     train(symbols::Vector{Vector{String}},
-               coordinates::Vector{Matrix{Float64}},
-               energies::Vector{Float64};
+               coordinates::Vector{Matrix{Float32}},
+               energies::Vector{Float32};
                parameterFile = nothing
                )
 
@@ -47,8 +47,9 @@ Workflow:
         * https://stats.stackexchange.com/questions/229885/whats-the-recommended-weight-initialization-strategy-when-using-the-elu-activat
         * but the ANI paper initialized from random normal distribution between the ranges (-1/d, 1/d), where d is the # of inputs into the node
     * pre-process results in each layer? (batch normalization)
-    * Train and return the model
+    * Train and return the model (multiple times, each with smaller learning rate)
         * max norm regularization
+        * first training: vectorized (0 inputs); subsequent trainings with no 0 inputs
 """
 function train(symbols::Vector{Vector{String}},              # required
                coordinates::Vector{Matrix{Float32}},         # required
@@ -70,6 +71,15 @@ function train(symbols::Vector{Vector{String}},              # required
     println(size(coordinates[1]))
     println(length(energies))
 
+    # convert coordinate into distances and angles
+    N = length(energies)  # number of data points
+    distanceV = Vector{Matrix{Float32}}(undef, N)  # vector of distance matrices
+    angleV =  Vector{Array{Float32, 3}}(undef, N)  # vector of angle arrays (3D)
+    for i = 1:N  # convert each coordinate to distances and angles for all data points
+        distanceV[i] = geometry.coordinates_to_distances(coordinates[i])
+        angleV[i] = geometry.coordinates_to_angles(coordinates[i])
+    end
+    coordinates = nothing  # free memory
 
     return "success"
 end
