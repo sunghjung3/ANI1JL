@@ -33,14 +33,16 @@ end
 
 
 """
-    G_R_singleTerm(R_ij: p)
+    G_R_singleTerm(R_ij, p, f_Rij)
 
 Single term of the radial element G_R of the atomic environment vector:
     G_R_i = exp(-η (R_ij - R_s)^2 ) * f_C(R_ij)
+
+f_C(R_ij) is passed in as f_Rij
 """
-function G_R_singleTerm(R_ij::floats_or_ints, p::BPParameters) :: Float32
+function G_R_singleTerm(R_ij::floats_or_ints, p::BPParameters, f_Rij::floats_or_ints) :: Float32
     diff = R_ij - p.R_s
-    return exp(-p.η * diff * diff) * f_C(R_ij, p.R_c)
+    return exp(-p.η * diff * diff) * f_Rij
 end
 
 
@@ -49,13 +51,15 @@ end
 
 Single term of the angular element G_A of the atomic environment vector:
     G_A_i = (1 + cos(θ_ijk- θ_s))^ζ * exp(-η([R_ij + R_ik]/2 - R_s)^2) * f_C(R_ij) f_C(R_ik)
+
+f_C(R_ij) and f_C(R_ik) is passed in as f_Rij and f_Rik
 """
 function G_A_singleTerm(θ_ijk::floats_or_ints, R_ij::floats_or_ints, R_ik::floats_or_ints,
-                        p::BPParameters) :: Float32
+                        p::BPParameters, f_Rij::floats_or_ints, f_Rik::floats_or_ints
+                        ) :: Float32
 
     diff = (R_ij + R_ik) / 2 - p.R_s
-    f = f_C(R_ij, p.R_c) * f_C(R_ik, p.R_c)
-    return (1 + cos(θ_ijk - p.θ_s))^p.ζ * exp(-p.η * diff * diff) * f
+    return (1 + cos(θ_ijk - p.θ_s))^p.ζ * exp(-p.η * diff * diff) * f_Rij * f_Rik
 end
 
 #==============================================================================================#
@@ -107,6 +111,5 @@ Constructs AEV for each of the N atom in the structure, given a 3 x N matrix of 
 """
 function make_AEVs(symbols::Vector{String}, coordinates::Matrix{Float32},
                    symbols_to_tags::Dict{String, Int32}) :: Vector{Vector{Float32}}
-    distance_matrix = sqrt.( transpose(coordinates) * coordinates )
-
+    distance_matrix = coordinates_to_distances(coordinates)
 end

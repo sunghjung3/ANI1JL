@@ -4,6 +4,8 @@ module ANI1JL
 
 
 include("parameters.jl")
+
+include("training/geometry.jl")
 include("training/fingerprints.jl")
 
 
@@ -62,10 +64,6 @@ function train(symbols::Vector{Vector{String}},              # required
         println(parameterFile)
     end
     params = parse_params(parameterFile)
-    println(params)
-    println(length(symbols[1]))
-    println(size(coordinates[1]))
-    println(length(energies))
 
     # make integer representation of each element (aka "tags")
     tags_to_symbols = Dict{Int32, String}(collect( enumerate(params.elements) ))
@@ -74,11 +72,13 @@ function train(symbols::Vector{Vector{String}},              # required
     # make vector of all BP parameters
     radial_subAEV_params = groups_to_BPParameters(params.radial, params.R_cut_radial)
     angular_subAEV_params = groups_to_BPParameters(params.angular, params.R_cut_angular)
-    @show radial_subAEV_params[1]
-    @show angular_subAEV_params[1]
 
     # make AEVs for each data point
-    # make_AEVs(symbols[1], coordinates[1], symbols_to_tags)
+    #AEV = make_AEVs(symbols[1], coordinates[1], symbols_to_tags)
+    #@show AEV
+
+    # c = [1f0 2f0 3f0 4f0; 5f0 6f0 7f0 8f0; 0f0 -1f0 -2f0 -3f0]
+    c = rand(Float32, 3, 100)
  
     return "success"
 end
