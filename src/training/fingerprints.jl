@@ -1,11 +1,3 @@
-"""
-    fingerprints
-
-Methods to compute Behler-Parrinello Descriptors
-"""
-module fingerprints
-
-
 floats_or_ints = Union{Float32, Int32}
 
 #==============================================================================================#
@@ -78,13 +70,8 @@ end
 
 Constructs AEV for each of the N atom in the structure, given a 3 x N matrix of coordinates
 """
-#=
 function make_AEVs(symbols::Vector{String}, coordinates::Matrix{Float32},
-                   params::parameters.Params) :: Vector{Vector{Float32}}
+                   symbols_to_tags::Dict{String, Int32}) :: Vector{Vector{Float32}}
     distance_matrix = sqrt.( transpose(coordinates) * coordinates )
-    @show params.activation
-end
-=#
-
 
 end

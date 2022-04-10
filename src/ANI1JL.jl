@@ -3,8 +3,8 @@
 module ANI1JL
 
 
-include("training/fingerprints.jl")
 include("parameters.jl")
+include("training/fingerprints.jl")
 
 
 """
@@ -61,14 +61,18 @@ function train(symbols::Vector{Vector{String}},              # required
         parameterFile = join(path, "/") * "/src/training/default.par"
         println(parameterFile)
     end
-    params = parameters.parse_params(parameterFile)
+    params = parse_params(parameterFile)
     println(params)
     println(length(symbols[1]))
     println(size(coordinates[1]))
     println(length(energies))
 
+    # make integer representation of each element (aka "tags")
+    tags_to_symbols = Dict{Int32, String}(collect( enumerate(params.elements) ))
+    symbols_to_tags = Dict(symbol => tag for (tag, symbol) in tags_to_symbols)
+
     # make AEVs for each data point
-    #fingerprints.make_AEVs(symbols[1], coordinates[1], params)
+    # make_AEVs(symbols[1], coordinates[1], symbols_to_tags)
  
     return "success"
 end

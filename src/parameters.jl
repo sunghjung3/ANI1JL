@@ -1,11 +1,4 @@
 """
-    parameters
-
-Methods to parse and store model parameters
-"""
-module parameters
-
-"""
     Params
 Struct to hold all parameters passsed in by the user through the .par file
 """
@@ -213,7 +206,4 @@ function parse_params(par_file::String) :: Params
     push!(params.architecture, 1)  # output layer
 
     return params
-end
-
-
 end

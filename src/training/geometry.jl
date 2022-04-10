@@ -1,12 +1,4 @@
 """
-    geometry
-
-Methods to deal with geometries (e.g. distance, coordinate, angle, ...)
-"""
-module geometry
-
-
-"""
     coordinates_to_distances(coordinates::Matrix{Float32}) :: Matrix{Float32}
 
 Converts a matrix of coordinates (3 x N) to a distance matrix (N x N).
