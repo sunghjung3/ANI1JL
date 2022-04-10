@@ -64,6 +64,7 @@ function train(symbols::Vector{Vector{String}},              # required
         println(parameterFile)
     end
     params = parse_params(parameterFile)
+    println(params)
 
 
 

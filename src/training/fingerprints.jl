@@ -115,6 +115,7 @@ function make_AEVs(params::Params, symbols::Vector{String}, coordinates::Matrix{
 
     # convert each symbol in the structure to its coresponding tag
 
+
     # calculate distance matrix
     D = distance_matrix(coordinates)
 

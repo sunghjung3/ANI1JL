@@ -136,7 +136,7 @@ function set_subAEV!(params::Params, keyword::String, num_elements::Union{Int32,
 end
 
 function set_elements!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
-    params.elements = d
+    params.elements = unique(d)
     params.tags2elements = Dict{Int32, String}(collect( enumerate(params.elements) ))
     params.elements2tags = Dict(element=> tag for (tag, element) in params.tags2elements)
 end

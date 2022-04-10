@@ -7,8 +7,9 @@
 # All field below are OPTIONAL. If not included, will use default setting
 #===============================================================================================
 
-# list of all elements in the training data (N elements)
-Elements    C   N   O   H
+# list of all elements in the training data (N elements). Parsing will remove duplicates.
+Elements    C   N   O   H   C
+# becomes ["C", "N", "O", "H"]
 
 # parameters for the radial elements of AEV (include integer m_R to list all m_R pairs explicitly)
 Radial     8
