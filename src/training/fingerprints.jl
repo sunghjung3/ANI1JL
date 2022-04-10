@@ -66,6 +66,41 @@ end
 #======================================= High Level ===========================================#
 
 """
+    groups_to_BPParameters(radial_groups)
+
+Converts vector of radial parameter tuples (η, R_s) and R_cut to BPParameters datatype
+"""
+function groups_to_BPParameters(radial_groups::Vector{NTuple{2, Float32}},
+                                R_cut::Float32) :: Vector{BPParameters}
+    N = length(radial_groups)
+    return_V = Vector{BPParameters}(undef, N)
+    for i in 1:N
+        group = radial_groups[i]
+        return_V[i] = BPParameters(R_cut, group[2], group[1], 0f0, 0f0)
+    end
+    return return_V
+end
+
+
+"""
+    groups_to_BPParameters(angular_groups)
+
+Converts vector of angular parameter tuples (ζ, θ_s, η, R_s) and R_cut to BPParameters datatype
+"""
+function groups_to_BPParameters(angular_groups::Vector{NTuple{4, Float32}},
+                                 R_cut::Float32) :: Vector{BPParameters}
+    N = length(angular_groups)
+    return_V = Vector{BPParameters}(undef, N)
+    for i in 1:N
+        group = angular_groups[i]
+        return_V[i] = BPParameters(R_cut, group[4], group[3],
+                                   group[2], group[1])
+    end
+    return return_V
+end
+
+
+"""
     make_AEVs(symbols, coordinates, params)
 
 Constructs AEV for each of the N atom in the structure, given a 3 x N matrix of coordinates

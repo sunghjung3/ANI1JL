@@ -71,6 +71,12 @@ function train(symbols::Vector{Vector{String}},              # required
     tags_to_symbols = Dict{Int32, String}(collect( enumerate(params.elements) ))
     symbols_to_tags = Dict(symbol => tag for (tag, symbol) in tags_to_symbols)
 
+    # make vector of all BP parameters
+    radial_subAEV_params = groups_to_BPParameters(params.radial, params.R_cut_radial)
+    angular_subAEV_params = groups_to_BPParameters(params.angular, params.R_cut_angular)
+    @show radial_subAEV_params[1]
+    @show angular_subAEV_params[1]
+
     # make AEVs for each data point
     # make_AEVs(symbols[1], coordinates[1], symbols_to_tags)
  

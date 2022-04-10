@@ -21,15 +21,15 @@ end
 # overload @show
 Base.show(io::IO, p::Params) =
     print(io, """
-              Elements     : $(p.elements)
-              R_cut        : $(p.R_cut_radial) (Radial), $(p.R_cut_angular) (Angular)
-              Radial pairs : $(length(p.radial))
+              Elements       : $(p.elements)
+              R_cut          : $(p.R_cut_radial) (Radial), $(p.R_cut_angular) (Angular)
+              Radial groups  : $(length(p.radial))
               $(p.radial)
-              Angular pairs: $(length(p.angular))
+              Angular groups : $(length(p.angular))
               $(p.angular)
-              Architecture : $(p.architecture)
-              Biases       : $(p.biases)
-              Activation   : $(p.activation)
+              Architecture   : $(p.architecture)
+              Biases         : $(p.biases)
+              Activation     : $(p.activation)
               """)
               # add input and final layers; something is still wrong in R_cut...
 
