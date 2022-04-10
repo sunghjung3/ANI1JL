@@ -150,7 +150,7 @@ function dot_products(coordinates::Matrix{Float32}) :: Array{Float32, 3}
             temp = diff_vec_T * diff_vecs[:, j:end]  # dims = 1 x (N-j)
             dots[j:end, j] = temp
             dots[j, j:end] = temp
-            # return_array[1:end .!= k, , k]
+            ### NOTE: sqrt is not included yet
         end
         return_array[1:end .!= k, 1:end .!= k, k] = dots
     end
@@ -167,6 +167,7 @@ function dot_products_dumb(coordinates::Matrix{Float32}) :: Array{Float32, 3}
         diff_vecs = coordinates .- col  # dims = 3 x N
         dots = transpose(diff_vecs) * diff_vecs
         return_array[:, :, k] = dots
+        ### NOTE: sqrt is not included here yet
     end
     return return_array
 end
