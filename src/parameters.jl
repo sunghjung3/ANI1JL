@@ -5,6 +5,11 @@ Struct to hold all parameters passsed in by the user through the .par file
 Base.@kwdef mutable struct Params
     # ex: ["C", "N", "O", "H"]
     elements::Vector{String} = String[]
+
+    # mapping between elements (String representation) to tags (Int representation) and reverse
+    elements2tags::Dict{String, Int32} = Dict{String, Int32}()
+    tags2elements::Dict{Int32, String} = Dict{Int32, String}()
+
     # ex: 4.6 (Angstroms)
     R_cut_radial::Float32 = 0.0
     # ex: 4.0 (Angstroms)
@@ -22,6 +27,7 @@ end
 Base.show(io::IO, p::Params) =
     print(io, """
               Elements       : $(p.elements)
+              Tags           : $(p.elements2tags)
               R_cut          : $(p.R_cut_radial) (Radial), $(p.R_cut_angular) (Angular)
               Radial groups  : $(length(p.radial))
               $(p.radial)
@@ -131,6 +137,8 @@ end
 
 function set_elements!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
     params.elements = d
+    params.tags2elements = Dict{Int32, String}(collect( enumerate(params.elements) ))
+    params.elements2tags = Dict(element=> tag for (tag, element) in params.tags2elements)
 end
 
 function set_architecture!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})

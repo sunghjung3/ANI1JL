@@ -9,7 +9,6 @@ floats_or_ints = Union{Float32, Int32}
 Struct to hold descriptor parameters
 """
 struct BPParameters
-    R_c::floats_or_ints  # cutoff radius, as used in the cutoff function
     R_s::floats_or_ints  # shifting distance, as used in the radial element of AEV
     η::floats_or_ints  # width parameter in the exponential term
     θ_s::floats_or_ints  # shifting angle, as used in the angular element of AEV
@@ -65,22 +64,18 @@ end
 #==============================================================================================#
 #======================================= Mid Level ============================================#
 
-
-#==============================================================================================#
-#======================================= High Level ===========================================#
-
 """
     groups_to_BPParameters(radial_groups)
 
-Converts vector of radial parameter tuples (η, R_s) and R_cut to BPParameters datatype
+Converts vector of radial parameter tuples (η, R_s) to BPParameters datatype
 """
 function groups_to_BPParameters(radial_groups::Vector{NTuple{2, Float32}},
-                                R_cut::Float32) :: Vector{BPParameters}
+                                ) :: Vector{BPParameters}
     N = length(radial_groups)
     return_V = Vector{BPParameters}(undef, N)
     for i in 1:N
         group = radial_groups[i]
-        return_V[i] = BPParameters(R_cut, group[2], group[1], 0f0, 0f0)
+        return_V[i] = BPParameters(group[2], group[1], 0f0, 0f0)
     end
     return return_V
 end
@@ -89,27 +84,44 @@ end
 """
     groups_to_BPParameters(angular_groups)
 
-Converts vector of angular parameter tuples (ζ, θ_s, η, R_s) and R_cut to BPParameters datatype
+Converts vector of angular parameter tuples (ζ, θ_s, η, R_s) to BPParameters datatype
 """
 function groups_to_BPParameters(angular_groups::Vector{NTuple{4, Float32}},
-                                 R_cut::Float32) :: Vector{BPParameters}
+                                 ) :: Vector{BPParameters}
     N = length(angular_groups)
     return_V = Vector{BPParameters}(undef, N)
     for i in 1:N
         group = angular_groups[i]
-        return_V[i] = BPParameters(R_cut, group[4], group[3],
-                                   group[2], group[1])
+        return_V[i] = BPParameters(group[4], group[3], group[2], group[1])
     end
     return return_V
 end
 
+
+#==============================================================================================#
+#======================================= High Level ===========================================#
 
 """
     make_AEVs(symbols, coordinates, params)
 
 Constructs AEV for each of the N atom in the structure, given a 3 x N matrix of coordinates
 """
-function make_AEVs(symbols::Vector{String}, coordinates::Matrix{Float32},
-                   symbols_to_tags::Dict{String, Int32}) :: Vector{Vector{Float32}}
-    distance_matrix = coordinates_to_distances(coordinates)
+function make_AEVs(params::Params, symbols::Vector{String}, coordinates::Matrix{Float32},
+                   ) :: Vector{Vector{Float32}}
+
+    # make vector of all BP parameters
+    radial_subAEV_params = groups_to_BPParameters(params.radial)
+    angular_subAEV_params = groups_to_BPParameters(params.angular)
+
+    # convert each symbol in the structure to its coresponding tag
+
+    # calculate distance matrix
+    D = distance_matrix(coordinates)
+
+    # for each atom in the structure, compute its AEV
+    N = length(symbols)
+    AEVs = Vector{Vector{Float32}}(undef, N)
+
+
+    return AEVs
 end
