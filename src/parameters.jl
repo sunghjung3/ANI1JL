@@ -7,8 +7,8 @@ Base.@kwdef mutable struct Params
     elements::Vector{String} = String[]
 
     # mapping between elements (String representation) to tags (Int representation) and reverse
-    elements2tags::Dict{String, Int32} = Dict{String, Int32}()
-    tags2elements::Dict{Int32, String} = Dict{Int32, String}()
+    elements2tags::Dict{String, Int} = Dict{String, Int}()
+    tags2elements::Dict{Int, String} = Dict{Int, String}()
 
     # ex: 4.6 (Angstroms)
     R_cut_radial::Float32 = 0.0
@@ -18,7 +18,7 @@ Base.@kwdef mutable struct Params
     radial::Vector{NTuple{2, Float32}} = NTuple{2, Float32}[]
     # ex: [(zeta1, theta_s1, eta1, R_s1), ...]
     angular::Vector{NTuple{4, Float32}} = NTuple{4, Float32}[]
-    architecture::Vector{Int32} = Int32[]  # ex: [768, 128, 128, 64, 1] (include input & output)
+    architecture::Vector{Int} = Int[]  # ex: [768, 128, 128, 64, 1] (include input & output)
     biases::Vector{String} = String[]  # ex: ["y", "y", "y", "n"]
     activation::Vector{String} = String[]  # ex: ["gelu", "gelu", "gelu", "gelu"]
 end
@@ -107,7 +107,7 @@ end
 
 
 """
-    set_subAEV!(params, keyword, num_elements, lines, counter::Int) :: Int32
+    set_subAEV!(params, keyword, num_elements, lines, counter::Int)
 
 Sets radial or angular field of Params object (as well as their R_cut fields).
 Returns updated counter
@@ -137,12 +137,12 @@ end
 
 function set_elements!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
     params.elements = unique(d)
-    params.tags2elements = Dict{Int32, String}(collect( enumerate(params.elements) ))
+    params.tags2elements = Dict{Int, String}(collect( enumerate(params.elements) ))
     params.elements2tags = Dict(element=> tag for (tag, element) in params.tags2elements)
 end
 
 function set_architecture!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
-    params.architecture = map(x -> parse(Int32, x), d)
+    params.architecture = map(x -> parse(Int, x), d)
 end
 
 function set_biases!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})

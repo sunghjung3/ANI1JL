@@ -68,9 +68,8 @@ function train(symbols::Vector{Vector{String}},              # required
 
 
 
-    # make AEVs for each data point
-    AEVs = make_AEVs(params, symbols[1], coordinates[1])
-    @show AEVs
+    # make AEVs for all data points
+    AEVs_list = coordinates_to_AEVs(params, symbols, coordinates)
 
     # c = [1f0 2f0 3f0 4f0; 5f0 6f0 7f0 8f0; 0f0 -1f0 -2f0 -3f0]
     # c = rand(Float32, 3, 100)

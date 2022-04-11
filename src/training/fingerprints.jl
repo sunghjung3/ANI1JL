@@ -26,8 +26,8 @@ Piecewise cutoff function defined by:
                 |_             0.0                  for R_ij > R_c
 """
 function f_C(R_ij::floats_or_ints, R_c::floats_or_ints) :: Float32
-    R_ij > R_c && return 0.0
-    return 0.5 * cos(pi * R_ij / R_c) + 0.5
+    R_ij > R_c && return 0f0
+    return 0.5f0 * cos(pi * R_ij / R_c) + 0.5f0
 end
 
 
@@ -60,6 +60,15 @@ function G_A_singleTerm(θ_ijk::floats_or_ints, R_ij::floats_or_ints, R_ik::floa
     diff = (R_ij + R_ik) / 2 - p.R_s
     return (1 + cos(θ_ijk - p.θ_s))^p.ζ * exp(-p.η * diff * diff) * f_Rij * f_Rik
 end
+
+
+# Helper functions for indexing the AEVs matrix
+get_radial_index(j::Int, n::Int, m_R::Int) = m_R * (j-1) + n
+partial_angular_index(j::Int, k::Int, N::Int, tri::Dict{Int, Int}) = (j-1) * N - tri[j-1] + k
+# get_angular_index(j::Int, k::Int, m_A::Int, ao::Int, N::Int, tri::Dict{Int, Int}, n::Int) =
+                                            # ao + m_A * partial_angular_index(j, k, N, tri) + n
+get_angular_index(j::Int, k::Int, m_A::Int, N::Int, tri::Dict{Int, Int}, n::Int) =
+                                                m_A * partial_angular_index(j, k, N, tri) + n
 
 #==============================================================================================#
 #======================================= Mid Level ============================================#
@@ -98,31 +107,74 @@ function groups_to_BPParameters(angular_groups::Vector{NTuple{4, Float32}},
 end
 
 
+function compute_radial_subAEVs(symbols_id::Vector{Int}, distance_matrix::Matrix{Float32},
+                             params_list::Vector{BPParameters}, R_cut::Float32)
+
+end
+
+function compute_angular_subAEVs(symbols_id::Vector{Int}, distance_matrix::Matrix{Float32},
+                              params_list::Vector{BPParameters}, R_cut::Float32)
+
+end
+
 #==============================================================================================#
 #======================================= High Level ===========================================#
 
 """
-    make_AEVs(symbols, coordinates, params)
+    compute_AEVs!(symbols, coordinates, params)
 
-Constructs AEV for each of the N atom in the structure, given a 3 x N matrix of coordinates
+Constructs AEV for each of the N atom in the structure, given a 3 x N matrix of coordinates.
+Stores the result in the `i`th entry of the first argument
 """
-function make_AEVs(params::Params, symbols::Vector{String}, coordinates::Matrix{Float32},
-                   ) :: Vector{Vector{Float32}}
+function compute_AEVs!(store_vector::Vector{Matrix{Float32}}, i::Int, params::Params,
+                       symbols::Vector{String}, coordinates::Matrix{Float32},
+                       radial_params::Vector{BPParameters}, angular_params::Vector{BPParameters}
+                       , m_R::Int, m_A::Int, tri::Dict{Int, Int}, N::Int) :: Nothing
+
+    # convert each symbol in the structure to its coresponding tag
+    symbols_id = [params.elements2tags[symbol] for symbol in symbols]
+
+    # calculate distance matrix and f_C(R_ij)
+    D = distance_matrix(coordinates)
+    f_C_radial = f_C.(D, params.R_cut_radial)
+    f_C_angular = f_C.(D, params.R_cut_angular)
+
+    # compute its AEV
+    M = length(symbols)
+    # get radial radial subAEVs
+    # get angular subAEVs
+    # store_vector[i] = vcat(radial subAEVs, angular subAEVs)
+
+    return nothing
+end
+
+
+"""
+    coordinates_to_AEVs(params, symbols_list, coordinates_list)
+
+Return a list of AEVs for all data points in the provided symbols and coordinates lists
+"""
+function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}},
+                        coordinates_list::Vector{Matrix{Float32}}) :: Vector{Matrix{Float32}}
+    N = length(symbols_list)
 
     # make vector of all BP parameters
     radial_subAEV_params = groups_to_BPParameters(params.radial)
     angular_subAEV_params = groups_to_BPParameters(params.angular)
+    m_R = length(radial_subAEV_params)
+    m_A = length(angular_subAEV_params)
 
-    # convert each symbol in the structure to its coresponding tag
+    # Other preparations needed:
 
+    # triangle number needed for indexing angular subAEV
+    tri = Dict( i => sum(0:i) for i in 0:(N-1) )
+    # angular_offset = N * length(radial_subAEV_params)
 
-    # calculate distance matrix
-    D = distance_matrix(coordinates)
+    return_list = Vector{Matrix{Float32}}(undef, N)
+    for i in 1:N  # for all data points
+        compute_AEVs!(return_list, i, params, symbols_list[i], coordinates_list[1],
+                        radial_subAEV_params, angular_subAEV_params, m_R, m_A, tri, N)
+    end
 
-    # for each atom in the structure, compute its AEV
-    N = length(symbols)
-    AEVs = Vector{Vector{Float32}}(undef, N)
-
-
-    return AEVs
+    return return_list
 end
