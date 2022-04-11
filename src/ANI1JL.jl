@@ -2,6 +2,7 @@
 
 module ANI1JL
 
+using DelimitedFiles  # to write csv files for debugging
 
 include("parameters.jl")
 
@@ -67,9 +68,17 @@ function train(symbols::Vector{Vector{String}},              # required
     println(params)
 
 
+    # just for debugging
+    symbols_single = [symbols[1]]
+    coordinates_single = [coordinates[1]]
 
     # make AEVs for all data points
-    AEVs_list = coordinates_to_AEVs(params, symbols, coordinates)
+    AEVs_list = coordinates_to_AEVs(params, symbols_single, coordinates_single)
+    AEVs = AEVs_list[1]
+    writedlm("AEVs.csv", AEVs, ',') 
+    @show params.elements2tags
+    @show symbols[1]
+    writedlm("coordinates.csv", coordinates[1], ',')
 
     # c = [1f0 2f0 3f0 4f0; 5f0 6f0 7f0 8f0; 0f0 -1f0 -2f0 -3f0]
     # c = rand(Float32, 3, 100)

@@ -65,10 +65,10 @@ end
 # Helper functions for indexing the AEVs matrix
 get_radial_index(j::Int, n::Int, m_R::Int) = m_R * (j-1) + n
 partial_angular_index(j::Int, k::Int, N::Int, tri::Dict{Int, Int}) = (j-1) * N - tri[j-1] + k
-# get_angular_index(j::Int, k::Int, m_A::Int, ao::Int, N::Int, tri::Dict{Int, Int}, n::Int) =
-                                            # ao + m_A * partial_angular_index(j, k, N, tri) + n
-get_angular_index(j::Int, k::Int, m_A::Int, N::Int, tri::Dict{Int, Int}, n::Int) =
-                                                m_A * partial_angular_index(j, k, N, tri) + n
+get_angular_index(j::Int, k::Int, m_A::Int, ao::Int, N::Int, tri::Dict{Int, Int}, n::Int) =
+                                            ao + m_A * partial_angular_index(j, k, N, tri) + n
+# get_angular_index(j::Int, k::Int, m_A::Int, N::Int, tri::Dict{Int, Int}, n::Int) =
+                                                # m_A * partial_angular_index(j, k, N, tri) + n
 
 #==============================================================================================#
 #======================================= Mid Level ============================================#
@@ -107,14 +107,39 @@ function groups_to_BPParameters(angular_groups::Vector{NTuple{4, Float32}},
 end
 
 
-function compute_radial_subAEVs(symbols_id::Vector{Int}, distance_matrix::Matrix{Float32},
-                             params_list::Vector{BPParameters}, R_cut::Float32)
+function compute_subAEVs!(AEV_matrix::Matrix{Float32}, radial_params::Vector{BPParameters},
+                            atomIDs::Vector{Int}, distances::Matrix{Float32},
+                            f_C_Rij::Matrix{Float32}, m_R::Int, M::Int) :: Nothing
+    for atom1 in 1:(M-1)
+        atom1_id = atomIDs[atom1]  # integer representation of atom1's element symbol
+        for atom2 in (atom1+1):M
+            if f_C_Rij[atom1, atom2] > 0.0
+                atom2_id = atomIDs[atom2]  # integer representation of atom2's element symbol
 
-end
+                for (n, param) in enumerate(radial_params)
+                    temp = G_R_singleTerm(distances[atom1, atom2], param, f_C_Rij[atom1, atom2])
 
-function compute_angular_subAEVs(symbols_id::Vector{Int}, distance_matrix::Matrix{Float32},
-                              params_list::Vector{BPParameters}, R_cut::Float32)
+                    # update atom 1 descriptors
+                    row_index = get_radial_index(atom2_id, n, m_R)
+                    AEV_matrix[row_index, atom1] += temp
+                    # update atom 2 descriptors
+                    row_index = get_radial_index(atom1_id, n, m_R)
+                    AEV_matrix[row_index, atom2] += temp
 
+                end  # params loop
+
+            end  # distance condition
+        end  # atom2 loop
+    end  # atom1 loop
+
+    return nothing
+end   # function
+
+function compute_subAEVs!(AEV_Matrix::Matrix{Float32}, angular_params::Vector{BPParameters},
+                            atomIDs::Vector{Int}, distances::Matrix{Float32},
+                            f_C_Rij::Matrix{Float32}, coordinates::Matrix{Float32}, m_A::Int,
+                            tri::Dict{Int, Int}, N::Int, M::Int, ao::Int) :: Nothing
+    return nothing
 end
 
 #==============================================================================================#
@@ -129,7 +154,7 @@ Stores the result in the `i`th entry of the first argument
 function compute_AEVs!(store_vector::Vector{Matrix{Float32}}, i::Int, params::Params,
                        symbols::Vector{String}, coordinates::Matrix{Float32},
                        radial_params::Vector{BPParameters}, angular_params::Vector{BPParameters}
-                       , m_R::Int, m_A::Int, tri::Dict{Int, Int}, N::Int) :: Nothing
+                       , m_R::Int, m_A::Int, tri::Dict{Int, Int}, N::Int, ao::Int) :: Nothing
 
     # convert each symbol in the structure to its coresponding tag
     symbols_id = [params.elements2tags[symbol] for symbol in symbols]
@@ -141,9 +166,10 @@ function compute_AEVs!(store_vector::Vector{Matrix{Float32}}, i::Int, params::Pa
 
     # compute its AEV
     M = length(symbols)
-    # get radial radial subAEVs
-    # get angular subAEVs
-    # store_vector[i] = vcat(radial subAEVs, angular subAEVs)
+    store_vector[i] = zeros(Float32, params.architecture[1], M)
+    compute_subAEVs!(store_vector[i], radial_params, symbols_id, D, f_C_radial, m_R, M)
+    compute_subAEVs!(store_vector[i], angular_params, symbols_id, D, f_C_angular, coordinates,
+                        m_A, tri, N, M, ao)
 
     return nothing
 end
@@ -168,12 +194,13 @@ function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}
 
     # triangle number needed for indexing angular subAEV
     tri = Dict( i => sum(0:i) for i in 0:(N-1) )
-    # angular_offset = N * length(radial_subAEV_params)
+    angular_offset = N * length(radial_subAEV_params)
 
     return_list = Vector{Matrix{Float32}}(undef, N)
     for i in 1:N  # for all data points
         compute_AEVs!(return_list, i, params, symbols_list[i], coordinates_list[1],
-                        radial_subAEV_params, angular_subAEV_params, m_R, m_A, tri, N)
+                        radial_subAEV_params, angular_subAEV_params, m_R, m_A, tri, N,
+                        angular_offset)
     end
 
     return return_list
