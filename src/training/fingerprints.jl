@@ -107,6 +107,32 @@ function groups_to_BPParameters(angular_groups::Vector{NTuple{4, Float32}},
 end
 
 
+"""
+    compute_subAEVs(AEV_matrix, radial_params, atomIDs, distances, f_C_Rij, m_R, M)
+
+Computes radial subAEVs for all atoms for all radial parameter permutations.
+
+Argument descriptions:
+
+    `AEV_Matrix`:
+        Matrix of AEVs for all atoms in the structure. Each atom's AEV is stored as a column.
+        The function modifies this matrix (size: (`m_R`*`N` + `m_A`*`N`*(`N`+1)/2) x `M`)
+            `m_R` and `M` are other arguments to this function. See below.
+            For description of `N`, see `compute_AEVs()` function
+    `radial_params`:        
+        Vector of all permutations of BP descriptor parameters for radial subAEV (length `m_R`)
+    `atomIDs`:
+        Vector of integer representation (aka "tags" or "IDs") for all `M` atoms in the
+        structure
+    `distances`:
+        Distance matrix (`M` x `M`) between all pairs of atoms
+    `f_C_Rij`:
+        Return value from f_C(`distances`). Passed in as an argument for performance
+    `m_R`:
+        Length of `radial_params`
+    `M`:
+        Number of atoms in the structure
+"""
 function compute_subAEVs!(AEV_matrix::Matrix{Float32}, radial_params::Vector{BPParameters},
                             atomIDs::Vector{Int}, distances::Matrix{Float32},
                             f_C_Rij::Matrix{Float32}, m_R::Int, M::Int) :: Nothing
@@ -135,10 +161,33 @@ function compute_subAEVs!(AEV_matrix::Matrix{Float32}, radial_params::Vector{BPP
     return nothing
 end   # function
 
+
+"""
+
+"""
 function compute_subAEVs!(AEV_Matrix::Matrix{Float32}, angular_params::Vector{BPParameters},
                             atomIDs::Vector{Int}, distances::Matrix{Float32},
                             f_C_Rij::Matrix{Float32}, coordinates::Matrix{Float32}, m_A::Int,
                             tri::Dict{Int, Int}, N::Int, M::Int, ao::Int) :: Nothing
+    for centerAtom in 1:M
+        centerAtom_id = atomIDs[centerAtom]
+        for neighborAtom1 in 1:(M-1)
+            if f_C_Rij[centerAtom, neighborAtom1] > 0.0 && neighborAtom1 != centerAtom
+                neighborAtom1_id = atomIDs[neighborAtom1]
+                for neighborAtom2 in (neighborAtom1+1):M
+                    if f_C_Rij[centerAtom, neighborAtom2] > 0.0 && neighborAtom2 != centerAtom
+                        neighborAtom2_id = atomIDs[neighborAtom2]
+
+                        for (n, param) in enumerate(angular_params)
+                            # row_index = get_angular_index()
+                            # get_angular_index()
+                        end  # params loop
+
+                    end  # self and distance condition: center and neighbor2
+                end  # neighbor_atom2
+            end  # self and distance condition: center and neighbor1
+        end  # neighbor_atom1 loop
+    end  # center_atom loop
     return nothing
 end
 
@@ -149,7 +198,38 @@ end
     compute_AEVs!(symbols, coordinates, params)
 
 Constructs AEV for each of the N atom in the structure, given a 3 x N matrix of coordinates.
-Stores the result in the `i`th entry of the first argument
+Stores the result in the `i`th entry of the first argument.
+
+Argument descriptions:
+
+    `store_vector`:
+        Vector containing AEVs for all data points. The function modifies this vector
+    `i`:
+        The i-th AEVs to compute (i-th index in `store_vector`)
+    `params`:
+        `Params` object created from user's .par file
+    `symbols`:
+        Ordered list of element symbols for all atoms in the structure (length `M`)
+    `coordinates`:
+        3 x M matrix of Cartesian coordinates of atoms in the structure
+    `radial_params`:
+        Vector of all permutations of BP descriptor parameters for radial subAEV (length `m_R`)
+    `angular_params`:
+        Vector of all permutations of BP descriptor parameters for angular subAEV (length `m_A`)
+    `m_R`:
+        Length of `radial_params`
+    `m_A`:
+        Length of `angular_params`
+    `tri`:
+        Dictionary used to map an integer to its triangular number, which is defined as:
+            tri(n) = Σ(i, start: i=0, end: i=n)
+        Needed to index angular subAEV in the AEVs matrix
+    `N`:
+        Number of different elements present in the dataset
+            ex: if the dataset contains only C, N, O, H, and F, then `N` = 5
+    `ao`:
+        "Angular offset" for indexing angular subAEV in the AEVs matrix.
+        Should be equal to `N*m_R`
 """
 function compute_AEVs!(store_vector::Vector{Matrix{Float32}}, i::Int, params::Params,
                        symbols::Vector{String}, coordinates::Matrix{Float32},
@@ -182,8 +262,6 @@ Return a list of AEVs for all data points in the provided symbols and coordinate
 """
 function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}},
                         coordinates_list::Vector{Matrix{Float32}}) :: Vector{Matrix{Float32}}
-    N = length(symbols_list)
-
     # make vector of all BP parameters
     radial_subAEV_params = groups_to_BPParameters(params.radial)
     angular_subAEV_params = groups_to_BPParameters(params.angular)
@@ -191,13 +269,13 @@ function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}
     m_A = length(angular_subAEV_params)
 
     # Other preparations needed:
-
-    # triangle number needed for indexing angular subAEV
-    tri = Dict( i => sum(0:i) for i in 0:(N-1) )
-    angular_offset = N * length(radial_subAEV_params)
+    N = length(params.elements)
+    tri = Dict( i => sum(0:i) for i in 0:(N-1) ) # triangle numbers (for angular subAEV index)
+    @show tri
+    angular_offset = N * m_R
 
     return_list = Vector{Matrix{Float32}}(undef, N)
-    for i in 1:N  # for all data points
+    for i in 1:length(symbols_list)  # for all data points
         compute_AEVs!(return_list, i, params, symbols_list[i], coordinates_list[1],
                         radial_subAEV_params, angular_subAEV_params, m_R, m_A, tri, N,
                         angular_offset)
