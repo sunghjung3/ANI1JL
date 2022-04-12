@@ -1,5 +1,3 @@
-floats_or_ints = Union{Float32, Int32}
-
 #==============================================================================================#
 #======================================= Low Level ============================================#
 
@@ -9,10 +7,10 @@ floats_or_ints = Union{Float32, Int32}
 Struct to hold descriptor parameters
 """
 struct BPParameters
-    R_s::floats_or_ints  # shifting distance, as used in the radial element of AEV
-    η::floats_or_ints  # width parameter in the exponential term
-    θ_s::floats_or_ints  # shifting angle, as used in the angular element of AEV
-    ζ::floats_or_ints  # angular element width parameter
+    R_s::Float32  # shifting distance, as used in the radial element of AEV
+    η::Float32  # width parameter in the exponential term
+    θ_s::Float32  # shifting angle, as used in the angular element of AEV
+    ζ::Float32  # angular element width parameter
     G_A_coeff::Float32  # == 2^(1-ζ)
 
     # constructor
@@ -29,7 +27,7 @@ Piecewise cutoff function defined by:
     f_C(R_ij) = |
                 |_             0.0                  for R_ij > R_c
 """
-function f_C(R_ij::floats_or_ints, R_c::floats_or_ints) :: Float32
+function f_C(R_ij::Float32, R_c::Float32) :: Float32
     R_ij > R_c && return 0f0
     return 0.5f0 * cos(pi * R_ij / R_c) + 0.5f0
 end
@@ -43,7 +41,7 @@ Single term of the radial element G_R of the atomic environment vector:
 
 f_C(R_ij) is passed in as `f_Rij`
 """
-function G_R_singleTerm(R_ij::floats_or_ints, p::BPParameters, f_Rij::floats_or_ints) :: Float32
+function G_R_singleTerm(R_ij::Float32, p::BPParameters, f_Rij::Float32) :: Float32
     diff = R_ij - p.R_s
     return exp(-p.η * diff * diff) * f_Rij
 end
@@ -57,9 +55,8 @@ Single term of the angular element G_A of the atomic environment vector:
 
 f_C(R_ij) and f_C(R_ik) is passed in as `f_Rij` and `f_Rik`.
 """
-function G_A_singleTerm(θ_ijk::floats_or_ints, R_ij::floats_or_ints, R_ik::floats_or_ints,
-                        p::BPParameters, f_Rij::floats_or_ints, f_Rik::floats_or_ints
-                        ) :: Float32
+function G_A_singleTerm(θ_ijk::Float32, R_ij::Float32, R_ik::Float32, p::BPParameters,
+                        f_Rij::Float32, f_Rik::Float32) :: Float32
 
     diff = (R_ij + R_ik) / 2 - p.R_s
     return p.G_A_coeff * (1 + cos(θ_ijk - p.θ_s))^p.ζ * exp(-p.η * diff * diff) * f_Rij * f_Rik

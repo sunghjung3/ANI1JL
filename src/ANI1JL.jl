@@ -9,6 +9,9 @@ include("parameters.jl")
 include("training/geometry.jl")
 include("training/fingerprints.jl")
 
+include("../tools/fileio.jl")
+using .fileio
+
 
 """
     train(symbols, coordinates, energies; parameterFile = nothing)
@@ -69,20 +72,19 @@ function train(symbols::Vector{Vector{String}},              # required
 
 
     # just for debugging
-    symbols_single = [symbols[1]]
-    coordinates_single = [coordinates[1]]
+    random_index = rand(1:length(symbols))
+    @show random_index
+    symbols_single = [symbols[random_index]]
+    coordinates_single = [coordinates[random_index]]
 
     # make AEVs for all data points
     AEVs_list = coordinates_to_AEVs(params, symbols_single, coordinates_single)
     AEVs = AEVs_list[1]
     writedlm("AEVs.csv", AEVs, ',') 
-    @show params.elements2tags
-    @show symbols[1]
-    writedlm("coordinates.csv", coordinates[1], ',')
+    @show symbols_single[1]
+    writedlm("coordinates.csv", coordinates_single[1], ',')
+    write_xyz("coordinates.xyz", symbols_single[1], coordinates_single[1])
 
-    # c = [1f0 2f0 3f0 4f0; 5f0 6f0 7f0 8f0; 0f0 -1f0 -2f0 -3f0]
-    # c = rand(Float32, 3, 100)
- 
     return "success"
 end
 
