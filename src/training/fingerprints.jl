@@ -66,7 +66,7 @@ end
 get_radial_index(j::Int, n::Int, m_R::Int) = m_R * (j-1) + n
 partial_angular_index(j::Int, k::Int, N::Int, tri::Dict{Int, Int}) = (j-1) * N - tri[j-1] + k
 get_angular_index(j::Int, k::Int, m_A::Int, ao::Int, N::Int, tri::Dict{Int, Int}, n::Int) =
-                                            ao + m_A * partial_angular_index(j, k, N, tri) + n
+                                        ao + m_A * (partial_angular_index(j, k, N, tri) - 1) + n
 # get_angular_index(j::Int, k::Int, m_A::Int, N::Int, tri::Dict{Int, Int}, n::Int) =
                                                 # m_A * partial_angular_index(j, k, N, tri) + n
 
@@ -207,7 +207,7 @@ function compute_subAEVs!(AEV_Matrix::Matrix{Float32}, angular_params::Vector{BP
                             f_C_Rij::Matrix{Float32}, coordinates::Matrix{Float32}, m_A::Int,
                             tri::Dict{Int, Int}, N::Int, M::Int, ao::Int) :: Nothing
     for centerAtom in 1:M
-        centerAtom_id = atomIDs[centerAtom]
+        # centerAtom_id = atomIDs[centerAtom]
         for neighborAtom1 in 1:(M-1)
             if f_C_Rij[centerAtom, neighborAtom1] > 0.0 && neighborAtom1 != centerAtom
                 neighborAtom1_id = atomIDs[neighborAtom1]
