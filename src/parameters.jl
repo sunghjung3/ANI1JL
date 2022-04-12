@@ -40,6 +40,38 @@ Base.show(io::IO, p::Params) =
               # add input and final layers; something is still wrong in R_cut...
 
 
+"""
+    check_consistency(params1, params2)
+
+Compares fields of 2 params variables and returns consistency status.
+    status == 0 : identical
+    status == 1 : minor inconsistency
+    status == 2 : major inconsistency
+    status == 3 : fatal inconsistency
+"""
+function check_consistency(params1::Params, params2::Params) :: Int
+    if params1.elements != params2.elements
+        return 3
+    elseif params1.elements2tags != params2.elements2tags
+        return 3
+    elseif params1.R_cut_radial != params2.R_cut_radial
+        return 2
+    elseif params1.R_cut_angular != params2.R_cut_angular
+        return 2
+    elseif params1.radial != params2.radial  # this vector is ordered
+        return 2
+    elseif params1.angular != params2.angular  # this vector is ordered
+        return 2
+    elseif params1.architecture != params2.architecture
+        return 1
+    elseif params1.biases != params2.biases
+        return 1
+    elseif params1.activation != params2.activation
+        return 1
+    end
+    return 0
+end
+
 #==============================================================================================#
 # Helper functions for parse_params()
 

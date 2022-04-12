@@ -331,3 +331,82 @@ function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}
 
     return return_list
 end
+
+
+#==============================================================================================#
+#================================ Saving & Loading AEVs from file =============================#
+
+using BSON: @save, @load
+
+"""
+    save_AEVs(filename, params, vector_of_AEVs_matrices)
+
+Save AEVs and parameters that were used to compute the AEVs using the BSON.jl package.
+Can be a single AEVs matrix or a vector of multiple AEVs matrices
+"""
+function save_AEVs(filename::String, params::Params,
+                    AEVs_matrices::Union{Vector{Matrix{Float32}}, Matrix{Float32}}) :: Int
+    @save filename params AEVs_matrices
+    return 0  # successful
+end
+
+
+#"""
+#    load_AEVs(filename)
+#
+#Load AEVs and parameters from saved binary JSON file
+#"""
+#function load_AEVs(filename::String)
+#    @load filename params AEVs_matrices
+#    return params, AEVs_matrices
+#end
+
+
+# if I have time, add functions to save as CSV, convert .bson to .csv, and load from CSV
+
+
+"""
+    concat_AEVs(AEVs...)
+
+Combines multiple vectors of AEVs matrices into a single vector.
+RISKY TO USE EXTERNALLY (assumes that params for all the AEVs are identical)
+"""
+function concat_AEVs(AEVs::Vararg{Vector{Matrix{Float32}}})
+    return vcat(AEVs...)
+end
+
+
+"""
+"""
+function load_AEVs(filenames::Vararg{String})
+    ret_params = Params()
+    ret_vec = Matrix{Float32}[]
+    first_file = true
+    for filename in filenames
+        @load filename params AEVs_matrices  # load file
+
+        # compare params with first file's params
+        if first_file
+            ret_params = params
+            first_file = false
+        else  # not the first file: check consistency of params
+            s = check_consistency(ret_params, params)
+            if s == 1
+                println("WARNING: minor inconsistency found in params: $(filenames[1]), $filename")
+            elseif s == 2
+                throw(error("Major inconsistency found in params: $(filenames[1]), $filename"))
+            elseif s == 3
+                throw(error("Fatal inconsistency found in params: $(filenames[1]), $filename"))
+            end
+        end 
+
+        # append to the final AEVs vector
+        if typeof(AEVs_matrices) == Matrix{Float32}
+            push!(ret_vec, AEVs_matrices)
+        else  # should be of type Vector{Matrix{Float32}}
+            append!(ret_vec, AEVs_matrices)
+        end
+    end  # file loop
+
+    return ret_params, ret_vec
+end  # function

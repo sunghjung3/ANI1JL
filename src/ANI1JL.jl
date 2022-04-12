@@ -42,7 +42,7 @@ Workflow:
     * should change all datatypes to 32 bit
     * Calculate distance and angle matrices from coordinates and symbols
     * Compute atomic environment vectors (AEV) from distance and angle matrices
-        * to vectorize training, create unnecessary AEVs too
+        * to vectorize training, create unnecessary AEVs too ?
     * Pre-process data (mean = 0, std = 1)
     * initalizing weights: "He initialization for RELU"
         * https://stats.stackexchange.com/questions/229885/whats-the-recommended-weight-initialization-strategy-when-using-the-elu-activat
@@ -50,7 +50,7 @@ Workflow:
     * pre-process results in each layer? (batch normalization)
     * Train and return the model (multiple times, each with smaller learning rate)
         * max norm regularization
-        * first training: vectorized (0 inputs); subsequent trainings with no 0 inputs
+        * first training: vectorized (0 inputs); subsequent trainings with no 0 inputs ?
 """
 function train(symbols::Vector{Vector{String}},              # required
                coordinates::Vector{Matrix{Float32}},         # required
@@ -70,20 +70,9 @@ function train(symbols::Vector{Vector{String}},              # required
     params = parse_params(parameterFile)
     println(params)
 
-
-    # just for debugging
-    random_index = rand(1:length(symbols))
-    @show random_index
-    symbols_single = [symbols[random_index]]
-    coordinates_single = [coordinates[random_index]]
-
     # make AEVs for all data points
-    AEVs_list = coordinates_to_AEVs(params, symbols_single, coordinates_single)
-    AEVs = AEVs_list[1]
-    writedlm("AEVs.csv", AEVs, ',') 
-    @show symbols_single[1]
-    writedlm("coordinates.csv", coordinates_single[1], ',')
-    write_xyz("coordinates.xyz", symbols_single[1], coordinates_single[1])
+    AEVs_list = coordinates_to_AEVs(params, symbols, coordinates)
+    save_AEVs("ani_gdb_s01_AEVs.bson", params, AEVs_list)
 
     return "success"
 end
