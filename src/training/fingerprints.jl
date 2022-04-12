@@ -163,6 +163,43 @@ end   # function
 
 
 """
+    compute_subAEVs!(AEV_Matrix, angular_params, atomIDs, distances, f_C_Rij, coordinates, m_A,
+                            tri, N, M, ao)
+
+Computes angular subAEVs for all atoms for all angular parameter permutations.
+
+Argument descriptions:
+
+    `AEV_Matrix`:
+        Matrix of AEVs for all atoms in the structure. Each atom's AEV is stored as a column.
+        The function modifies this matrix (size: (`m_R`*`N` + `m_A`*`N`*(`N`+1)/2) x `M`)
+            `M` is another argument to this function. See below.
+            For description of `N` and `m_R`, see `compute_AEVs()` function
+    `angular_params`:        
+        Vector of all permutations of BP descriptor parameters for angular subAEV (length `m_A`)
+    `atomIDs`:
+        Vector of integer representation (aka "tags" or "IDs") for all `M` atoms in the
+        structure
+    `distances`:
+        Distance matrix (`M` x `M`) between all pairs of atoms
+    `f_C_Rij`:
+        Return value from f_C(`distances`). Passed in as an argument for performance
+    `coordinates`:
+        Matrix of Cartesian coordinates of all atoms (size: 3 x `M`)
+    `m_A`:
+        Length of `angular_params`
+    `tri`:
+        Dictionary used to map an integer to its triangular number, which is defined as:
+            tri(n) = Σ(i, start: i=0, end: i=n)
+        Needed to index angular subAEV in the AEVs matrix
+    `N`:
+        Number of different elements present in the dataset
+            ex: if the dataset contains only C, N, O, H, and F, then `N` = 5
+    `M`:
+        Number of atoms in the structure
+    `ao`:
+        "Angular offset" for indexing angular subAEV in the AEVs matrix.
+        Should be equal to `N*m_R`
 
 """
 function compute_subAEVs!(AEV_Matrix::Matrix{Float32}, angular_params::Vector{BPParameters},
@@ -174,13 +211,24 @@ function compute_subAEVs!(AEV_Matrix::Matrix{Float32}, angular_params::Vector{BP
         for neighborAtom1 in 1:(M-1)
             if f_C_Rij[centerAtom, neighborAtom1] > 0.0 && neighborAtom1 != centerAtom
                 neighborAtom1_id = atomIDs[neighborAtom1]
+                v_c1 = coordinates[:, neighborAtom1] - coordinates[:, centerAtom]
+                d_c1 = distances[centerAtom, neighborAtom1]
+                f_C_c1 = f_C_Rij[centerAtom, neighborAtom1]
                 for neighborAtom2 in (neighborAtom1+1):M
                     if f_C_Rij[centerAtom, neighborAtom2] > 0.0 && neighborAtom2 != centerAtom
                         neighborAtom2_id = atomIDs[neighborAtom2]
+                        v_c2 = coordinates[:, neighborAtom2] - coordinates[:, centerAtom]
+                        d_c2 = distances[centerAtom, neighborAtom2]
+                        f_C_c2 = f_C_Rij[centerAtom, neighborAtom2]
+
+                        # angle calculation
+                        θ = acos( v_c1'v_c2 / ( d_c1 * d_c2 ) )
 
                         for (n, param) in enumerate(angular_params)
-                            # row_index = get_angular_index()
-                            # get_angular_index()
+                            row_index = get_angular_index(neighborAtom1_id, neighborAtom2_id,
+                                                            m_A, ao, N, tri, n)
+                            AEV_Matrix[row_index, centerAtom] +=
+                                    G_A_singleTerm(θ, d_c1, d_c2, param, f_C_c1, f_C_c2)
                         end  # params loop
 
                     end  # self and distance condition: center and neighbor2
@@ -271,7 +319,6 @@ function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}
     # Other preparations needed:
     N = length(params.elements)
     tri = Dict( i => sum(0:i) for i in 0:(N-1) ) # triangle numbers (for angular subAEV index)
-    @show tri
     angular_offset = N * m_R
 
     return_list = Vector{Matrix{Float32}}(undef, N)
