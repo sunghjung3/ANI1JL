@@ -13,6 +13,10 @@ struct BPParameters
     η::floats_or_ints  # width parameter in the exponential term
     θ_s::floats_or_ints  # shifting angle, as used in the angular element of AEV
     ζ::floats_or_ints  # angular element width parameter
+    G_A_coeff::Float32  # == 2^(1-ζ)
+
+    # constructor
+    BPParameters(a1, a2, a3, a4) = new( a1, a2, a3, a4, 2^(1-a4) )
 end
 
 
@@ -37,7 +41,7 @@ end
 Single term of the radial element G_R of the atomic environment vector:
     G_R_i = exp(-η (R_ij - R_s)^2 ) * f_C(R_ij)
 
-f_C(R_ij) is passed in as f_Rij
+f_C(R_ij) is passed in as `f_Rij`
 """
 function G_R_singleTerm(R_ij::floats_or_ints, p::BPParameters, f_Rij::floats_or_ints) :: Float32
     diff = R_ij - p.R_s
@@ -51,14 +55,14 @@ end
 Single term of the angular element G_A of the atomic environment vector:
     G_A_i = (1 + cos(θ_ijk- θ_s))^ζ * exp(-η([R_ij + R_ik]/2 - R_s)^2) * f_C(R_ij) f_C(R_ik)
 
-f_C(R_ij) and f_C(R_ik) is passed in as f_Rij and f_Rik
+f_C(R_ij) and f_C(R_ik) is passed in as `f_Rij` and `f_Rik`.
 """
 function G_A_singleTerm(θ_ijk::floats_or_ints, R_ij::floats_or_ints, R_ik::floats_or_ints,
                         p::BPParameters, f_Rij::floats_or_ints, f_Rik::floats_or_ints
                         ) :: Float32
 
     diff = (R_ij + R_ik) / 2 - p.R_s
-    return (1 + cos(θ_ijk - p.θ_s))^p.ζ * exp(-p.η * diff * diff) * f_Rij * f_Rik
+    return p.G_A_coeff * (1 + cos(θ_ijk - p.θ_s))^p.ζ * exp(-p.η * diff * diff) * f_Rij * f_Rik
 end
 
 
