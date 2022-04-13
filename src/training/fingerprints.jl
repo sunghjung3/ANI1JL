@@ -322,8 +322,9 @@ function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}
     tri = Dict( i => sum(0:i) for i in 0:(N-1) ) # triangle numbers (for angular subAEV index)
     angular_offset = N * m_R
 
-    return_list = Vector{Matrix{Float32}}(undef, N)
-    for i in 1:length(symbols_list)  # for all data points
+    L = length(symbols_list)  # number of data points
+    return_list = Vector{Matrix{Float32}}(undef, L)
+    for i in 1:L  # for all data points
         compute_AEVs!(return_list, i, params, symbols_list[i], coordinates_list[1],
                         radial_subAEV_params, angular_subAEV_params, m_R, m_A, tri, N,
                         angular_offset)
