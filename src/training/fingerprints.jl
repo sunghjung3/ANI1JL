@@ -378,6 +378,10 @@ end
 
 
 """
+    load_AEVs(filenames)
+
+Loads AEVs from existing .bson file(s) and combines them into one vector.
+Also checks for consistency of params in the AEV files in the argument vector.
 """
 function load_AEVs(filenames::Vararg{String})
     ret_params = Params()
