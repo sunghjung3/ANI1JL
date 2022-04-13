@@ -2,22 +2,27 @@
 
 module ANI1JL
 
-using DelimitedFiles  # to write csv files for debugging
 
 include("parameters.jl")
+export set_subAEV!, set_elements!, set_architecture!, set_activation!, set_biases!, set_params
+
 
 include("training/geometry.jl")
+export distance_matrix
+
 include("training/fingerprints.jl")
+export compute_AEVs!, coordinates_to_AEVs, save_AEVs, concat_AEVs, load_AEVs
+
 
 include("../tools/fileio.jl")
-using .fileio
+export fileio  # the module
+
+include("../tools/pyanitools.jl")
+export pyanitools
+
 
 
 """
-    train(symbols, coordinates, energies; parameterFile = nothing)
-
-Trains the force field with given data.
-
 Required training data (let's say there are N datapoints):
 - symbols:
     vector of length N, each element being a vector of chemical symbols
@@ -52,6 +57,8 @@ Workflow:
         * max norm regularization
         * first training: vectorized (0 inputs); subsequent trainings with no 0 inputs ?
 """
+
+#=
 function train(symbols::Vector{Vector{String}},              # required
                coordinates::Vector{Matrix{Float32}},         # required
                energies::Vector{Float32};                    # required
@@ -69,13 +76,19 @@ function train(symbols::Vector{Vector{String}},              # required
     end
     params = parse_params(parameterFile)
     println(params)
+    
+    default_params = set_params()
+    println(default_params)
 
     # make AEVs for all data points
-    AEVs_list = coordinates_to_AEVs(params, symbols, coordinates)
-    save_AEVs("ani_gdb_s01_AEVs.bson", params, AEVs_list)
+    # AEVs_list = coordinates_to_AEVs(params, symbols, coordinates)
+    # save_AEVs("ani_gdb_s01_AEVs.bson", params, AEVs_list)
+
+    # params, AEVs = load_AEVs(raw"C:\Users\sungh\code\ANI1JL\test\AEVs\ani_gdb_s01_AEVs.bson", raw"C:\Users\sungh\code\ANI1JL\test\AEVs\ani_gdb_s02_AEVs.bson")
+    # @show length(AEVs)
 
     return "success"
 end
-
+=#
 
 end
