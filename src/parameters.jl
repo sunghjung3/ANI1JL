@@ -4,23 +4,37 @@ Struct to hold all parameters passsed in by the user through the .par file
 """
 Base.@kwdef mutable struct Params
     # ex: ["C", "N", "O", "H"]
-    elements::Vector{String} = String[]
+    elements::Vector{String} = ["C", "N", "O", "H"]
 
     # mapping between elements (String representation) to tags (Int representation) and reverse
-    elements2tags::Dict{String, Int} = Dict{String, Int}()
-    tags2elements::Dict{Int, String} = Dict{Int, String}()
+    elements2tags::Dict{String, Int} = Dict("C" => 1, "N" => 2, "H" => 4, "O" => 3)
+    tags2elements::Dict{Int, String} = Dict(1 => "C", 2 => "N", 4 => "H", 3 => "O")
 
     # ex: 4.6 (Angstroms)
-    R_cut_radial::Float32 = 0.0
+    R_cut_radial::Float32 = 4.6
     # ex: 4.0 (Angstroms)
-    R_cut_angular::Float32 = 0.0
+    R_cut_angular::Float32 = 4.0
     # ex: [(eta1, R_s1), (eta2, R_s2), ...]
-    radial::Vector{NTuple{2, Float32}} = NTuple{2, Float32}[]
+    radial::Vector{NTuple{2, Float32}} =
+            Tuple{Float32, Float32}[(4.0, 0.5), (4.0, 1.0), (4.0, 1.55), (4.0, 2.1),
+                                    (4.0, 2.65), (4.0, 3.2), (4.0, 3.75), (4.0, 4.3)]
     # ex: [(zeta1, theta_s1, eta1, R_s1), ...]
-    angular::Vector{NTuple{4, Float32}} = NTuple{4, Float32}[]
-    architecture::Vector{Int} = Int[]  # ex: [768, 128, 128, 64, 1] (include input & output)
-    biases::Vector{String} = String[]  # ex: ["y", "y", "y", "n"]
-    activation::Vector{String} = String[]  # ex: ["gelu", "gelu", "gelu", "gelu"]
+    angular::Vector{NTuple{4, Float32}} =
+            NTuple{4, Float32}[(8.0, -1.571, 4.0, 0.5), (8.0, 0.0, 4.0, 0.5),
+                               (8.0, 1.571, 4.0, 0.5), (8.0, 3.141, 4.0, 0.5),
+                               (8.0, -1.571, 4.0, 1.1), (8.0, 0.0, 4.0, 1.1),
+                               (8.0, 1.571, 4.0, 1.1), (8.0, 3.141, 4.0, 1.1),
+                               (8.0, -1.571, 4.0, 1.7), (8.0, 0.0, 4.0, 1.7),
+                               (8.0, 1.571, 4.0, 1.7), (8.0, 3.141, 4.0, 1.7),
+                               (8.0, -1.571, 4.0, 2.3), (8.0, 0.0, 4.0, 2.3),
+                               (8.0, 1.571, 4.0, 2.3), (8.0, 3.141, 4.0, 2.3),
+                               (8.0, -1.571, 4.0, 2.9), (8.0, 0.0, 4.0, 2.9), 
+                               (8.0, 1.571, 4.0, 2.9), (8.0, 3.141, 4.0, 2.9),
+                               (8.0, -1.571, 4.0, 3.5), (8.0, 0.0, 4.0, 3.5),
+                               (8.0, 1.571, 4.0, 3.5), (8.0, 3.141, 4.0, 3.5)]
+    architecture::Vector{Int} = [272, 64, 1]  # include input & output
+    biases::Vector{String} = ["y", "y"] # allow biases between each layer?
+    activation::Vector{String} = ["gelu", "gelu"]  # activation functions
 end
 
 # overload @show
@@ -111,6 +125,7 @@ Read from explicitly provided parameter groups and set params field
 function set_from_groups!(params::Params, numGroups::Union{Int32, Int64}, lines::Vector{String},
                           prevIndex::Union{Int32, Int64}, fieldname::String)
     field = Symbol(fieldname)
+    setproperty!(params, field, [])
     for i = (prevIndex + 1):(prevIndex + numGroups)
         line = read_single_line(lines, i)
         tline = Tuple(map(x -> parse(Float32, x), line))  # convert into float Tuple
@@ -246,4 +261,24 @@ function parse_params(par_file::String) :: Params
     push!(params.architecture, 1)  # output layer
 
     return params
+end
+
+
+"""
+    set_params(par_file)
+
+Returns Params object created from reading par_file. Just calls parse_params()
+"""
+function set_params(par_file::String)
+    return parse_params(par_file)
+end
+
+
+"""
+    set_params()
+
+Returns Params object with default parameters.
+"""
+function set_params()
+    return Params()
 end
