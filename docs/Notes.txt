@@ -1,1 +1,4 @@
-Input: list of symbols, list of coordinates, list of energies (all lists in order)
+Important notes:
+
+	Coordinates should be columnar
+	If training with multiple data points/images, they should be put together in a vector
