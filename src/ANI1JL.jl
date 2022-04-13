@@ -20,6 +20,10 @@ export fileio  # the module
 include("../tools/pyanitools.jl")
 export pyanitools  # the module
 
+
+end
+
+
 #= Old
 function train(symbols::Vector{Vector{String}},              # required
                coordinates::Vector{Matrix{Float32}},         # required
@@ -52,5 +56,3 @@ function train(symbols::Vector{Vector{String}},              # required
     return "success"
 end
 =#
-
-end
