@@ -3,18 +3,24 @@
 module ANI1JL
 
 
+using Flux
+
+
 include("parameters.jl")
 export set_subAEV!, set_elements!, set_architecture!, set_activation!, set_biases!, set_params
 
 
-include("training/geometry.jl")
+include("train/geometry.jl")
 export distance_matrix
 
-include("training/fingerprints.jl")
+include("train/fingerprints.jl")
 export compute_AEVs!, coordinates_to_AEVs, save_AEVs, concat_AEVs, load_AEVs
 
-include("training/nnp_model.jl")
+include("train/nnp_model.jl")
 export atomic_nnps
+
+include("train/train.jl")
+
 
 
 include("../tools/fileio.jl")

@@ -1,5 +1,3 @@
-using Flux
-
 """
     atomic_nnp(params)
 
