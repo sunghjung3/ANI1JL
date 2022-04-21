@@ -33,7 +33,7 @@ Base.@kwdef mutable struct Params
                                (8.0, -1.571, 4.0, 3.5), (8.0, 0.0, 4.0, 3.5),
                                (8.0, 1.571, 4.0, 3.5), (8.0, 3.141, 4.0, 3.5)]
     architecture::Vector{Int} = [272, 64, 1]  # include input & output
-    biases::Vector{String} = ["y", "y"] # allow biases between each layer?
+    biases::Vector{Bool} = [true, true] # allow biases between each layer?
     activation::Vector{String} = ["gelu", "gelu"]  # activation functions
 end
 
@@ -193,7 +193,12 @@ function set_architecture!(params::Params, d::Union{Vector{SubString{String}}, V
 end
 
 function set_biases!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
-    params.biases = d
+    temp = Bool[]
+    for s in d
+        b = (s == "y") ? true : false  # convert "y"/"n" to true/false
+        push!(temp, b)
+    end
+    params.biases = temp
 end
 
 function set_activation!(params::Params, d::Union{Vector{SubString{String}}, Vector{String}})
