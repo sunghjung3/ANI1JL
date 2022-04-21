@@ -13,6 +13,9 @@ export distance_matrix
 include("training/fingerprints.jl")
 export compute_AEVs!, coordinates_to_AEVs, save_AEVs, concat_AEVs, load_AEVs
 
+include("training/nnp_model.jl")
+export atomic_nnps
+
 
 include("../tools/fileio.jl")
 export fileio  # the module
