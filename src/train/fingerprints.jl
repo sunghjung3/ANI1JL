@@ -257,8 +257,9 @@ Argument descriptions:
         The i-th AEVs to compute (i-th index in `store_vector`)
     `params`:
         `Params` object created from user's .par file
-    `symbols`:
-        Ordered list of element symbols for all atoms in the structure (length `M`)
+    `symbols_id`:
+        Ordered list of element symbols for all atoms in the structure (length `M`), given in 
+        integer representation (aka "tag" or "id")
     `coordinates`:
         3 x M matrix of Cartesian coordinates of atoms in the structure
     `radial_params`:
@@ -281,12 +282,9 @@ Argument descriptions:
         Should be equal to `N*m_R`
 """
 function compute_AEVs!(store_vector::Vector{Matrix{Float32}}, i::Int, params::Params,
-                       symbols::Vector{String}, coordinates::Matrix{Float32},
+                       symbols_id::Vector{Int}, coordinates::Matrix{Float32},
                        radial_params::Vector{BPParameters}, angular_params::Vector{BPParameters}
                        , m_R::Int, m_A::Int, tri::Dict{Int, Int}, N::Int, ao::Int) :: Nothing
-
-    # convert each symbol in the structure to its coresponding tag
-    symbols_id = [params.elements2tags[symbol] for symbol in symbols]
 
     # calculate distance matrix and f_C(R_ij)
     D = distance_matrix(coordinates)
@@ -294,7 +292,7 @@ function compute_AEVs!(store_vector::Vector{Matrix{Float32}}, i::Int, params::Pa
     f_C_angular = f_C.(D, params.R_cut_angular)
 
     # compute its AEV
-    M = length(symbols)
+    M = length(symbols_id)
     store_vector[i] = zeros(Float32, params.architecture[1], M)
     compute_subAEVs!(store_vector[i], radial_params, symbols_id, D, f_C_radial, m_R, M)
     compute_subAEVs!(store_vector[i], angular_params, symbols_id, D, f_C_angular, coordinates,
@@ -310,7 +308,7 @@ end
 Return a list of AEVs for all data points in the provided symbols and coordinates lists
 """
 function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}},
-                        coordinates_list::Vector{Matrix{Float32}}) :: Vector{Matrix{Float32}}
+                        coordinates_list::Vector{Matrix{Float32}})
     # make vector of all BP parameters
     radial_subAEV_params = groups_to_BPParameters(params.radial)
     angular_subAEV_params = groups_to_BPParameters(params.angular)
@@ -323,14 +321,16 @@ function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}
     angular_offset = N * m_R
 
     L = length(symbols_list)  # number of data points
-    return_list = Vector{Matrix{Float32}}(undef, L)
+    AEVs_list = Vector{Matrix{Float32}}(undef, L)  # store AEVs
+    id_list = Vector{Vector{Int}}(undef, L)  # store symbols ids
     for i in 1:L  # for all data points
-        compute_AEVs!(return_list, i, params, symbols_list[i], coordinates_list[1],
+        id_list[i] = [ params.elements2tags[symbol] for symbol in symbols_list[i] ]
+        compute_AEVs!(AEVs_list, i, params, id_list[i], coordinates_list[1],
                         radial_subAEV_params, angular_subAEV_params, m_R, m_A, tri, N,
                         angular_offset)
     end
 
-    return return_list
+    return AEVs_list, id_list
 end
 
 
@@ -346,8 +346,9 @@ Save AEVs and parameters that were used to compute the AEVs using the BSON.jl pa
 Can be a single AEVs matrix or a vector of multiple AEVs matrices
 """
 function save_AEVs(filename::String, params::Params,
-                    AEVs_matrices::Union{Vector{Matrix{Float32}}, Matrix{Float32}}) :: Int
-    @save filename params AEVs_matrices
+                    AEVs_matrices::Union{Vector{Matrix{Float32}}, Matrix{Float32}},
+                    symbol_id_list::Union{Vector{Vector{Int}}, Vector{Int}}) :: Int
+    @save filename params AEVs_matrices symbol_id_list
     return 0  # successful
 end
 
@@ -385,10 +386,11 @@ Also checks for consistency of params in the AEV files in the argument vector.
 """
 function load_AEVs(filenames::Vararg{String})
     ret_params = Params()
-    ret_vec = Matrix{Float32}[]
+    ret_vec_AEV = Matrix{Float32}[]
+    ret_vec_ids = Vector{Int}[]
     first_file = true
     for filename in filenames
-        @load filename params AEVs_matrices  # load file
+        @load filename params AEVs_matrices symbol_id_list  # load file
 
         # compare params with first file's params
         if first_file
@@ -407,11 +409,13 @@ function load_AEVs(filenames::Vararg{String})
 
         # append to the final AEVs vector
         if typeof(AEVs_matrices) == Matrix{Float32}
-            push!(ret_vec, AEVs_matrices)
+            push!(ret_vec_AEV, AEVs_matrices)
+            push!(ret_vec_ids, symbol_id_list)
         else  # should be of type Vector{Matrix{Float32}}
-            append!(ret_vec, AEVs_matrices)
+            append!(ret_vec_AEV, AEVs_matrices)
+            append!(ret_vec_ids, symbol_id_list)
         end
     end  # file loop
 
-    return ret_params, ret_vec
+    return ret_params, ret_vec_AEV, ret_vec_ids
 end  # function
