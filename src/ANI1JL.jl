@@ -20,7 +20,7 @@ include("train/nnp_model.jl")
 export atomic_nnps
 
 include("train/train.jl")
-export train
+export train_nnps!
 
 
 include("../tools/fileio.jl")

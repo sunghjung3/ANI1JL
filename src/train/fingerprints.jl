@@ -347,8 +347,9 @@ Can be a single AEVs matrix or a vector of multiple AEVs matrices
 """
 function save_AEVs(filename::String, params::Params,
                     AEVs_matrices::Union{Vector{Matrix{Float32}}, Matrix{Float32}},
-                    symbol_id_list::Union{Vector{Vector{Int}}, Vector{Int}}) :: Int
-    @save filename params AEVs_matrices symbol_id_list
+                    symbol_id_list::Union{Vector{Vector{Int}}, Vector{Int}},
+                    energies::Union{Vector{Float32}, Float32}) :: Int
+    @save filename params AEVs_matrices symbol_id_list energies
     return 0  # successful
 end
 
@@ -388,9 +389,10 @@ function load_AEVs(filenames::Vararg{String})
     ret_params = Params()
     ret_vec_AEV = Matrix{Float32}[]
     ret_vec_ids = Vector{Int}[]
+    ret_vec_energies = Float32[]
     first_file = true
     for filename in filenames
-        @load filename params AEVs_matrices symbol_id_list  # load file
+        @load filename params AEVs_matrices symbol_id_list energies  # load file
 
         # compare params with first file's params
         if first_file
@@ -411,11 +413,13 @@ function load_AEVs(filenames::Vararg{String})
         if typeof(AEVs_matrices) == Matrix{Float32}
             push!(ret_vec_AEV, AEVs_matrices)
             push!(ret_vec_ids, symbol_id_list)
+            push!(ret_vec_energies, energies)
         else  # should be of type Vector{Matrix{Float32}}
             append!(ret_vec_AEV, AEVs_matrices)
             append!(ret_vec_ids, symbol_id_list)
+            append!(ret_vec_energies, energies)
         end
     end  # file loop
 
-    return ret_params, ret_vec_AEV, ret_vec_ids
+    return ret_params, ret_vec_AEV, ret_vec_ids, ret_vec_energies
 end  # function
