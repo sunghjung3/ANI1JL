@@ -3,7 +3,7 @@
 module ANI1JL
 
 
-using Flux
+using Flux, NNlib
 
 
 include("parameters.jl")
@@ -17,10 +17,10 @@ include("train/fingerprints.jl")
 export compute_AEVs!, coordinates_to_AEVs, save_AEVs, concat_AEVs, load_AEVs
 
 include("train/nnp_model.jl")
-export atomic_nnps
+export atomic_nnps, save_nnps, load_nnps
 
 include("train/train.jl")
-export train_nnps!
+export train_nnps!, train_one_epoch!
 
 
 include("../tools/fileio.jl")

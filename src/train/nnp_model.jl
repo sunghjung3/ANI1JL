@@ -32,3 +32,20 @@ Model in index `i` of the vector corresponds to element with tag `i`
 function atomic_nnps(params::Params)
     return [atomic_nnp(params) for i in 1:length(params.elements)]
 end
+
+
+#==============================================================================================#
+#============================== Saving & Loading Models from file =============================#
+
+using BSON: @save, @load
+
+function save_nnps(filename::String, nnps) :: Int
+    @save filename nnps
+    return 0
+end
+
+
+function load_nnps(filename::String)
+    @load filename nnps
+    return nnps
+end

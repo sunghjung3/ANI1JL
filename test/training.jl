@@ -3,6 +3,7 @@
 #==============================================================================================#
 using ANI1JL
 using PyCall
+using BSON: @save, @load
 
 #==============================================================================================#
 # Helper functions for this script
@@ -73,7 +74,7 @@ Workflow:
 
 #=
 # load data
-data_file_name = raw"C:\Users\sungh\code\ANI1JL\test\data\ani_gdb_s01.h5"
+data_file_name = raw"C:\Users\sungh\code\ANI1JL\test\data\ani_gdb_s02.h5"
 symbols, coordinates, energies = import_ani_data(data_file_name)
 
 # set parameters for AEVs and NN (using default here, but can also specify path to a .par file)
@@ -81,8 +82,8 @@ params = set_params()
 println(params)
 
 # make AEVs for all data points and save to file
-AEVs_list = coordinates_to_AEVs(params, symbols, coordinates)
-save_AEVs("ani_gdb_s01_AEVs.bson", params, AEVs_list)
+AEVs_list, symbol_id_list = coordinates_to_AEVs(params, symbols, coordinates)
+save_AEVs("ani_gdb_s02_AEVs.bson", params, AEVs_list, symbol_id_list, energies)
 =#
 
 # load existing AEV files
@@ -90,7 +91,21 @@ AEVs_filenames = [raw"C:\Users\sungh\code\ANI1JL\test\AEVs\ani_gdb_s01_AEVs.bson
                   raw"C:\Users\sungh\code\ANI1JL\test\AEVs\ani_gdb_s02_AEVs.bson"
                 ]
     # @show length(AEVs)]
-params, AEVs = load_AEVs(AEVs_filenames...);
+params, AEVs, symbol_ids, energies = load_AEVs(AEVs_filenames...);
+println(params)
+
+
+# using Flux, NNlib
+# @load "test_model.bson" NN_Potential
+NN_Potential = atomic_nnps(params)
+save_nnps("initial_model.bson", NN_Potential)
+batch_size = convert(Int, ceil(61762/1024))
+η = 0.01
+validation = 0.1  # proportion of data used as validation set
+train_nnps!(NN_Potential, AEVs, symbol_ids, energies, batch_size=batch_size, η=η,
+                validation_proportion=validation)
+
+save_nnps("after_one_epoch_model.bson", NN_Potential)
 
 
 println("Training script finished")
