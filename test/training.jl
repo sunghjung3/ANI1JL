@@ -94,18 +94,17 @@ AEVs_filenames = [raw"C:\Users\sungh\code\ANI1JL\test\AEVs\ani_gdb_s01_AEVs.bson
 params, AEVs, symbol_ids, energies = load_AEVs(AEVs_filenames...);
 println(params)
 
-
 # using Flux, NNlib
 # @load "test_model.bson" NN_Potential
 NN_Potential = atomic_nnps(params)
-save_nnps("initial_model.bson", NN_Potential)
+# save_nnps("initial_model.bson", NN_Potential)
 batch_size = convert(Int, ceil(61762/1024))
-η = 0.01
+η = 0.1
 validation = 0.1  # proportion of data used as validation set
 train_nnps!(NN_Potential, AEVs, symbol_ids, energies, batch_size=batch_size, η=η,
                 validation_proportion=validation)
 
-save_nnps("after_one_epoch_model.bson", NN_Potential)
+# save_nnps("after_one_epoch_model.bson", NN_Potential)
 
 
 println("Training script finished")

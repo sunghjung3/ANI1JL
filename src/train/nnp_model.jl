@@ -34,6 +34,16 @@ function atomic_nnps(params::Params)
 end
 
 
+"""
+    nnp_energy(nnps, AEVs, IDs)
+
+Evaluates the neural network potential energy given the AEVs
+"""
+function nnp_energy(nnps, AEVs::Matrix{Float32}, IDs::Vector{Int}) :: Float32
+    E = sum([ nnps[IDs[i]](AEVs[:, i])[1] for i in 1:length(IDs) ])
+    return E
+end
+
 #==============================================================================================#
 #============================== Saving & Loading Models from file =============================#
 
