@@ -32,9 +32,9 @@ Base.@kwdef mutable struct Params
                                (8.0, 1.571, 4.0, 2.9), (8.0, 3.141, 4.0, 2.9),
                                (8.0, -1.571, 4.0, 3.5), (8.0, 0.0, 4.0, 3.5),
                                (8.0, 1.571, 4.0, 3.5), (8.0, 3.141, 4.0, 3.5)]
-    architecture::Vector{Int} = [272, 64, 1]  # include input & output
-    biases::Vector{Bool} = [true, true] # allow biases between each layer?
-    activation::Vector{String} = ["gelu", "gelu"]  # activation functions
+    architecture::Vector{Int} = [272, 64, 1, 1]  # include input & output
+    biases::Vector{Bool} = [true, true, true] # allow biases between each layer?
+    activation::Vector{String} = ["gelu", "gelu", "identity"]  # activation functions
 end
 
 # overload @show
