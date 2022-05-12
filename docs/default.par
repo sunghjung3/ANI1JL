@@ -44,10 +44,10 @@ Angular
 # Number of neurons in each hidden layer (thus not including number in 1st layer nor last layer)
 # FYI: number in 1st layer should be = m_R*N + m_A*N*(N+1)/2
 # FYI: number in last layer should be = 1
-Architecture   64
+Architecture   64   1
 
 # Allow biases? With n hidden layers, there should be (n+1) "y"/"n" below
-Biases  y   y
+Biases  y   y   y
 
 # Activation functions
-Activation  gelu    gelu
+Activation  gelu    gelu   identity
