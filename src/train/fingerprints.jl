@@ -222,8 +222,10 @@ function compute_subAEVs!(AEV_Matrix::Matrix{Float32}, angular_params::Vector{BP
                         d_c2 = distances[centerAtom, neighborAtom2]
                         f_C_c2 = f_C_Rij[centerAtom, neighborAtom2]
 
-                        # angle calculation
-                        θ = acos( v_c1'v_c2 / ( d_c1 * d_c2 ) )
+                        # angle calculation (clamp cos(θ) between -1 and 1 just in case)
+                        cos_θ = v_c1'v_c2 / ( d_c1 * d_c2 )
+                        cos_θ = ( abs(cos_θ) >= 1.f0 ) ? sign(cos_θ) : cos_θ
+                        θ = acos( cos_θ )
 
                         for (n, param) in enumerate(angular_params)
                             row_index = get_angular_index(neighborAtom1_id, neighborAtom2_id,
@@ -325,7 +327,7 @@ function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}
     id_list = Vector{Vector{Int}}(undef, L)  # store symbols ids
     for i in 1:L  # for all data points
         id_list[i] = [ params.elements2tags[symbol] for symbol in symbols_list[i] ]
-        compute_AEVs!(AEVs_list, i, params, id_list[i], coordinates_list[1],
+        compute_AEVs!(AEVs_list, i, params, id_list[i], coordinates_list[i],
                         radial_subAEV_params, angular_subAEV_params, m_R, m_A, tri, N,
                         angular_offset)
     end

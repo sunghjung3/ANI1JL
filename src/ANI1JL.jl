@@ -7,7 +7,8 @@ using Flux, NNlib
 
 
 include("parameters.jl")
-export set_subAEV!, set_elements!, set_architecture!, set_activation!, set_biases!, set_params
+export set_subAEV!, set_elements!, set_architecture!, set_activation!, set_biases!, set_params,
+        check_consistency
 
 
 include("train/geometry.jl")
