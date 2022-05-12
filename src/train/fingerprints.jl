@@ -325,7 +325,7 @@ function coordinates_to_AEVs(params::Params, symbols_list::Vector{Vector{String}
     L = length(symbols_list)  # number of data points
     AEVs_list = Vector{Matrix{Float32}}(undef, L)  # store AEVs
     id_list = Vector{Vector{Int}}(undef, L)  # store symbols ids
-    for i in 1:L  # for all data points
+    Threads.@threads for i in 1:L  # for all data points
         id_list[i] = [ params.elements2tags[symbol] for symbol in symbols_list[i] ]
         compute_AEVs!(AEVs_list, i, params, id_list[i], coordinates_list[i],
                         radial_subAEV_params, angular_subAEV_params, m_R, m_A, tri, N,
