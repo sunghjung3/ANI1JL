@@ -339,7 +339,8 @@ end
 #==============================================================================================#
 #================================ Saving & Loading AEVs from file =============================#
 
-using BSON: @save, @load
+# using BSON: @save, @load
+using JLD
 
 """
     save_AEVs(filename, params, vector_of_AEVs_matrices)
@@ -351,23 +352,11 @@ function save_AEVs(filename::String, params::Params,
                     AEVs_matrices::Union{Vector{Matrix{Float32}}, Matrix{Float32}},
                     symbol_id_list::Union{Vector{Vector{Int}}, Vector{Int}},
                     energies::Union{Vector{Float32}, Float32}) :: Int
-    @save filename params AEVs_matrices symbol_id_list energies
+    # @save filename params AEVs_matrices symbol_id_list energies
+    save(filename, "params", params, "AEVs_matrices", AEVs_matrices, "symbol_id_list",
+            symbol_id_list, "energies", energies)
     return 0  # successful
 end
-
-
-#"""
-#    load_AEVs(filename)
-#
-#Load AEVs and parameters from saved binary JSON file
-#"""
-#function load_AEVs(filename::String)
-#    @load filename params AEVs_matrices
-#    return params, AEVs_matrices
-#end
-
-
-# if I have time, add functions to save as CSV, convert .bson to .csv, and load from CSV
 
 
 """
@@ -394,7 +383,12 @@ function load_AEVs(filenames::Vararg{String})
     ret_vec_energies = Float32[]
     first_file = true
     for filename in filenames
-        @load filename params AEVs_matrices symbol_id_list energies  # load file
+        # @load filename params AEVs_matrices symbol_id_list energies  # load file
+        filedict = load(filename)
+        params = filedict["params"]
+        AEVs_matrices = filedict["AEVs_matrices"]
+        symbol_id_list = filedict["symbol_id_list"]
+        energies = filedict["energies"]
 
         # compare params with first file's params
         if first_file

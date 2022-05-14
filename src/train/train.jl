@@ -160,7 +160,7 @@ function train_full!(nnps, train_loss_func, val_loss_func, ps, opt, train_batche
                       log_filename::String)
     start_time = time()
     val_regression_counter::Int = 0  # training stops when it reaches max_counter
-    max_counter::Int = 100
+    max_counter::Int = 50
     new_val_loss = val_loss_func(val_dataset)
     min_val_loss = new_val_loss  # minimum validation loss observed so far
     # train_loss_value = train_loss_func(train_dataset)
