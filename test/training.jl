@@ -4,7 +4,7 @@
 using ANI1JL
 using PyCall
 using Random
-using BSON: @save, @load
+using JLD
 using Flux, NNlib
 using Plots
 
@@ -87,7 +87,11 @@ symbols = Vector{Vector{String}}()
 coordinates = Vector{Matrix{Float32}}()
 energies = Vector{Float32}()
 for file in data_filenames
-    local_symbols, local_coordinates, local_energies = import_ani_data(file)
+    # local_symbols, local_coordinates, local_energies = import_ani_data(file)
+    filedict = load(file)
+    local_symbols = filedict["symbols"]
+    local_coordinates = filedict["coordinates"]
+    local_energies = filedict["energies"]
     append!(symbols, local_symbols)
     append!(coordinates, local_coordinates)
     append!(energies, local_energies)

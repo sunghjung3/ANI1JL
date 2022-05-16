@@ -45,16 +45,6 @@ function nnp_energy(nnps, AEVs::Matrix{Float32}, IDs::Vector{Int}) :: Float32
 end
 
 
-"""
-    nnp_energies(nnps, AEVs_list, IDs_list)
-
-Evaluates the neural network potential energy of a vector of AEVs
-"""
-function nnp_energies(nnps, AEVs_list::Vector{Matrix{Float32}}, IDs_list::Vector{Vector{Int}}
-                        ) :: Vector{Float32}
-    
-end
-
 #==============================================================================================#
 #============================== Saving & Loading Models from file =============================#
 

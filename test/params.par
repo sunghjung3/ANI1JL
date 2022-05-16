@@ -1,0 +1,40 @@
+# These are comments
+
+Elements    C   N   O   H
+
+# parameters for the radial elements of AEV (include integer m_R to list all m_R pairs explicitly)
+Radial     8
+# eta   R_s
+4.00    0.50
+4.00    1.00
+4.00    1.55
+4.00    2.10
+4.00    2.65
+4.00    3.20
+4.00    3.75
+4.00    4.3
+# R_cut
+4.60
+
+# parameters for the angular elements of AEV (don't include integer m_A to have the software generate all m_A pairs for you)
+Angular
+# zeta
+8.00
+# theta_s (radians)
+-1.571  0       1.571   3.141
+# eta
+4.00
+# R_s
+0.50    1.10    1.70    2.30    2.90    3.50
+# R_cut
+4.0
+
+
+### Neural Network model hyperparameters ###
+
+# hidden layers
+Architecture   128   128   64   1
+
+Biases  y   y   y   y   y
+
+Activation  gelu   gelu   gelu   gelu   identity
