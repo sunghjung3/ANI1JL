@@ -8,7 +8,7 @@ This is my final project for my Computational Science and Engineering (CSE) Cert
 
 **Required**: Flux, NNlib, JLD, BSON, PyCall
 
-**Optional**: Zygote, Conda, Plots, Random
+**Optional**: Zygote, Plots, Random
 
 
 ## References:
