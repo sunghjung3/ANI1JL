@@ -6,8 +6,9 @@ This is my final project for my Computational Science and Engineering (CSE) Cert
 
 ## Dependencies
 
-*Required*: Flux, NNlib, JLD, BSON, PyCall
-*Optional*: Zygote, Conda, Plots, Random
+**Required**: Flux, NNlib, JLD, BSON, PyCall
+
+**Optional**: Zygote, Conda, Plots, Random
 
 
 ## References:
