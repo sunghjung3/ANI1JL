@@ -1,7 +1,13 @@
 # ANI-1-like Machine Learning Potential in Julia (ANI1JL)
 
-This is my final project for my Computational Science and Engineering (CSE) Certificate
+This is my final project for my Computational Science and Engineering (CSE) Certificate (Spring 2022)
     https://oden.utexas.edu/academics/undergraduates/computational-science-and-engineering-certificate/
+
+
+## Dependencies
+
+*Required*: Flux, NNlib, JLD, BSON, PyCall
+*Optional*: Zygote, Conda, Plots, Random
 
 
 ## References:
